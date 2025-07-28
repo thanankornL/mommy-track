@@ -1,0 +1,10 @@
+outputs/
+build/
+node_modules/
+*.log
+*.zip
+*.mp4
+*.mov
+.DS_Store
+.env
+server_things/
