@@ -1,3 +1,5 @@
+import 'package:carebellmom/chatting/chat_list_screen.dart';
+import 'package:carebellmom/notification.dart';
 import 'package:carebellmom/patientPages/Chatbot_index_patient.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -16,7 +18,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:carebellmom/config.dart';
 import 'dart:math';
-import 'package:provider/provider.dart';
+import 'package:carebellmom/chatting/chat_list_screen.dart';
 
 class PatientHomePage extends StatefulWidget {
   const PatientHomePage({super.key});
@@ -30,9 +32,9 @@ class _PatientHomePage extends State<PatientHomePage> {
   String? role;
   String? name;
   String? action;
+  String? displayName;
   Map<String, dynamic>? userJson;
   bool isLoading = true;
-   // Home tab selected
 
   Future<void> loadUserData() async {
     final prefs = await SharedPreferences.getInstance();
@@ -56,10 +58,14 @@ class _PatientHomePage extends State<PatientHomePage> {
         setState(() {
           userJson = json.decode(response.body);
           name = userJson?['name'];
+          displayName =
+              userJson?['display_name'] ?? userJson?['name'] ?? username;
+          action = userJson?['action']?.toString() ?? '';
           isLoading = false;
         });
       } else {
         setState(() {
+          displayName = username; // fallback
           isLoading = false;
         });
         throw Exception('Failed to load user data');
@@ -67,6 +73,7 @@ class _PatientHomePage extends State<PatientHomePage> {
     } catch (e) {
       print("Error: $e");
       setState(() {
+        displayName = username; // fallback
         isLoading = false;
       });
     }
@@ -85,7 +92,7 @@ class _PatientHomePage extends State<PatientHomePage> {
           'username': username,
           'gestational_weeks': weeks,
           'user_data': userJson,
-          'action ': action,
+          'action': action,
         }),
       );
 
@@ -148,23 +155,46 @@ class _PatientHomePage extends State<PatientHomePage> {
     );
   }
 
+  // ฟังก์ชันสำหรับไปหน้าแชท
+  void _navigateToChat() {
+    if (username != null && displayName != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder:
+              (context) => ChatListScreen(
+                username: username!,
+                userRole: 'patient',
+                displayName: displayName!,
+              ),
+        ),
+      );
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     loadUserData();
+     
   }
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading) {
-      return Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (isLoading) { 
+
+      return Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(color: Color(0xFFA8D5BA)),
+        ),
+      );
     }
 
     int totalDays = int.tryParse(userJson?['GA']?.toString() ?? '0') ?? 0;
     int weeks = totalDays ~/ 7;
     int days = totalDays % 7;
-    String action = userJson?['action']?.toString() ?? '';
-    String username = userJson?['username']?.toString() ?? '';
+    String actionDisplay = action ?? '';
+    String usernameDisplay = username ?? '';
 
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
@@ -174,9 +204,7 @@ class _PatientHomePage extends State<PatientHomePage> {
       body: SingleChildScrollView(
         physics: AlwaysScrollableScrollPhysics(),
         child: Column(
-          
           children: [
-            
             // Header
             Container(
               padding: EdgeInsets.only(
@@ -201,25 +229,19 @@ class _PatientHomePage extends State<PatientHomePage> {
                       ),
                       SizedBox(height: screenHeight * 0.01),
                       Text(
-                        'คุณ : $username',
+                        'คุณ : $usernameDisplay',
                         style: TextStyle(fontSize: 16, color: Colors.black54),
                       ),
                     ],
                   ),
-                  ElevatedButton(
+                  IconButton.outlined(
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => PersonalPage()),
+                        MaterialPageRoute(builder: (context) => NotificationPage()),
                       );
                     },
-                    child: Icon(Icons.person, color: const Color.fromARGB(255, 0, 0, 0)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromARGB(255, 240, 240, 240),
-                      shape: CircleBorder(),
-                      padding: EdgeInsets.all(20),
-                      
-                    ),
+                    icon: Icon(Icons.notifications),
                   ),
                 ],
               ),
@@ -261,7 +283,7 @@ class _PatientHomePage extends State<PatientHomePage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'การแจ้งเตือนครั้งที่ : $action',
+                        'การแจ้งเตือนครั้งที่ : $actionDisplay',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -284,42 +306,7 @@ class _PatientHomePage extends State<PatientHomePage> {
             ),
 
             // Appointment Button
-            Container(
-              margin: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>  ViewDetails(),
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFFA8D5BA),
-                  padding: EdgeInsets.symmetric(vertical: 15),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25),
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    
-                    Icon(Icons.calendar_today, color: Colors.black),
-                    SizedBox(width: 10),
-                    Text(
-                      'ดูรายละเอียด',
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+         
 
             // AI Food Recommendation Card
             Container(
@@ -331,7 +318,7 @@ class _PatientHomePage extends State<PatientHomePage> {
                 ),
                 child: InkWell(
                   onTap: () {
-                    Navigator.pushReplacement(
+                    Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => Chatbot_index_patient(),
@@ -387,28 +374,33 @@ class _PatientHomePage extends State<PatientHomePage> {
               ),
             ),
 
-            // Date Card
+            // Chat with Nurse Button - แก้ไขการเรียก ChatListScreen
             Container(
               margin: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              padding: EdgeInsets.all(15),
-              decoration: BoxDecoration(
-                color: Color(0xFFA8D5BA),
-                borderRadius: BorderRadius.circular(25),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.calendar_today, color: Colors.black),
-                  SizedBox(width: 10),
-                  Text(
-                    '8 มิ.ย. 2568',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+              child: ElevatedButton(
+                onPressed: _navigateToChat, // ใช้ฟังก์ชันที่แก้ไขแล้ว
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFFA8D5BA),
+                  padding: EdgeInsets.symmetric(vertical: 15),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(25),
                   ),
-                ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.chat_bubble_outline, color: Colors.black),
+                    SizedBox(width: 10),
+                    Text(
+                      'แชทกับพยาบาล',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
 
@@ -431,7 +423,7 @@ class _PatientHomePage extends State<PatientHomePage> {
                       // Pie Chart (you can replace with actual chart widget)
                       Expanded(
                         flex: 1,
-                        child: Container(
+                        child: SizedBox(
                           height: 150,
                           child: CustomPaint(
                             painter: PieChartPainter(),

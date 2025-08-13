@@ -272,6 +272,7 @@ class _PersonalPageState extends State<PersonalPage> {
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text("ตกลง"),
+            
           ),
         ],
       ),
@@ -313,6 +314,7 @@ class _PersonalPageState extends State<PersonalPage> {
     loadUserData();
   }
 
+
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
@@ -333,7 +335,7 @@ class _PersonalPageState extends State<PersonalPage> {
     }
 
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 132, 184, 132), // Light blue background
+      backgroundColor: Color(0xFF2E8B57), // Light blue background
       body: SafeArea(
         child: Column(
           children: [
@@ -341,16 +343,16 @@ class _PersonalPageState extends State<PersonalPage> {
             Padding(
               padding: const EdgeInsets.only(top: 20, bottom: 30),
               child: Text(
-                "My Account",
+                "ข้อมูลของฉัน",
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.w600,
-                  color: Colors.black,
+                  color: const Color.fromARGB(255, 255, 255, 255),
                 ),
               ),
             ),
 
-            // Main content container
+
             Expanded(
               child: Container(
                 width: double.infinity,
@@ -532,6 +534,8 @@ class _PersonalPageState extends State<PersonalPage> {
   }
 }
 class UserPage extends StatelessWidget {
+  const UserPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

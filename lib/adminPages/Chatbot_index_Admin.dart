@@ -2,12 +2,6 @@ import 'package:carebellmom/chatbot/message_ai.dart';
 import 'package:flutter/material.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:http/http.dart' as http;
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:http/http.dart';
-import '../notification.dart';
-import '../PersonalPage.dart';
-import 'package:carebellmom/chatbot/message_ai.dart';
 
 class Chatbot_index_Admin extends StatefulWidget {
   const Chatbot_index_Admin({super.key});

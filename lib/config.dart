@@ -1,1 +1,1 @@
-String baseUrl = "http://192.168.100.41:3000";  //ipnetwork and lhost 
+String baseUrl = "https://bad01df2f379.ngrok-free.app"; 

@@ -3,7 +3,7 @@ import 'package:dropdown_search/dropdown_search.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../config.dart';
-import 'dart:developer';
+
 import 'package:flutter/services.dart';
 
 // --------- User Model ----------
@@ -197,6 +197,7 @@ class _viewUserPageState extends State<viewUserPage> {
         }
       },
       child: Scaffold(
+        appBar: AppBar(title: Text('ดูรายละเอียดของคุณแม่'),),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
           child: Column(

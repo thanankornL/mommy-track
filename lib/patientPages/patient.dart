@@ -1,7 +1,7 @@
 import 'package:carebellmom/patientPages/Chatbot_index_patient.dart';
+import 'package:carebellmom/patientPages/viewDetails.dart';
 import 'package:flutter/material.dart';
 import 'PatientHomePage.dart';
-import '../notification.dart';
 import '../PersonalPage.dart';
 
 class PatientPage extends StatefulWidget {
@@ -34,12 +34,12 @@ class _PatientPageState extends State<PatientPage> {
          BottomNavigationBarItem(
           
             icon: Icon(Icons.home),
-            label: 'Home',
+            label: 'หน้าหลัก',
           ),
           BottomNavigationBarItem(
            
-            icon: Badge(child: Icon(Icons.notifications)),
-            label: 'Notifications',
+            icon: Badge(child: Icon(Icons.list)),
+            label: 'ดูรายละเอียด',
           ),
           BottomNavigationBarItem(
             
@@ -58,7 +58,7 @@ class _PatientPageState extends State<PatientPage> {
             currentPageIndex == 0
                 ?  PatientHomePage()// Show Text when index is 0
                 : currentPageIndex == 1
-                ? NotificationPage()
+                ? ViewDetails()
                 : currentPageIndex == 2
                 ? Chatbot_index_patient()
                 : currentPageIndex == 3

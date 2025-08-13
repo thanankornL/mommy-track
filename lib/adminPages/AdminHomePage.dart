@@ -116,7 +116,7 @@ class _AdminHomePage extends State<AdminHomePage> {
                     SizedBox(width: screenWidth * 0.2),
                     Icon(Icons.access_time_rounded),
                     SizedBox(width: 5),
-                    Text('$formattedTime', style: TextStyle(fontSize: 15,color : Colors.white),),
+                    Text(formattedTime, style: TextStyle(fontSize: 15,color : Colors.white),),
 
                   ],
                 ),

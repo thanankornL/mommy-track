@@ -3,7 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'AddUserPage.dart';
 import 'editUserPage.dart';
 import 'viewUserPage.dart';
-import 'package:carebellmom/deleteUserPage.dart';
+import 'package:carebellmom/patient_management/deleteUserPage.dart';
 
 class UserManagementPage extends StatefulWidget {
   const UserManagementPage({super.key});
@@ -101,6 +101,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                     ),
                     backgroundColor: Color(0xff73a8fc),
                   ),
+                  
                   onPressed: () {
                     Navigator.push(
                       context,
