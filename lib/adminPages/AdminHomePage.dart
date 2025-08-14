@@ -204,7 +204,7 @@ class _AdminHomePage extends State<AdminHomePage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => sendNotification(),
+                            builder: (context) => SendNotificationAndAppointment(),
                           ),
                         );
                       },

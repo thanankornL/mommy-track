@@ -304,7 +304,7 @@ class _NurseHomePage extends State<NurseHomePage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => sendNotification(),
+                            builder: (context) => SendNotificationAndAppointment(),
                           ),
                         );
                       },
@@ -1135,3 +1135,5 @@ class _NurseHomePage extends State<NurseHomePage> {
 
   // ในส่วน build method แทนที่ตารางเดิมด้วย
 }
+
+

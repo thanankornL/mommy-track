@@ -1200,6 +1200,7 @@ class _LoginFormState extends State<LoginForm> {
                   const Text('กำลังเชื่อมต่อ Thai ID...', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                 ],
               )
+              
             : Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
