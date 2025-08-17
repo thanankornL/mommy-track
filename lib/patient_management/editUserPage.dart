@@ -59,7 +59,12 @@ class _editUserPageState extends State<editUserPage> {
 
   @override
   Widget build(BuildContext context) {
+    appBar :AppBar(
+      title: Text("Edit User"),
+      backgroundColor: Colors.green,
+    );
     return KeyboardListener(
+    
       focusNode: FocusNode()..requestFocus(),
       autofocus: true,
       onKeyEvent: (event) {
@@ -71,7 +76,7 @@ class _editUserPageState extends State<editUserPage> {
       child: Scaffold(
         body: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Column(
+          child: Column(         
             children: [
               SizedBox(height: 35),
               Row(

@@ -21,48 +21,34 @@ class _NursePageState extends State<NursePage> {
     double screenheight = MediaQuery.of(context).size.height;
     return Scaffold(
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex : currentPageIndex,
+        currentIndex: currentPageIndex,
         onTap: (index) {
           setState(() {
-             currentPageIndex = index;
+            currentPageIndex = index;
           });
-
         },
-         type: BottomNavigationBarType.fixed,
+        type: BottomNavigationBarType.fixed,
         selectedItemColor: Colors.green[700],
         unselectedItemColor: Colors.grey,
-    
-        items: [
-            BottomNavigationBarItem(
 
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
+        items: [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'หน้าหลัก'),
+          BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'แชทบอท'),
           BottomNavigationBarItem(
             icon: Icon(Icons.notifications),
-            label: 'Notifications',
+            label: 'กล่องข้อความ',
           ),
-        
-          BottomNavigationBarItem(
-
-            icon: Icon(Icons.chat),
-            label: 'Chatbot',
-          ),
-          BottomNavigationBarItem(
-
-            icon: Icon(Icons.person),
-            label: 'User',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'โปรไฟล์'),
         ],
       ),
       body: Center(
         child:
             currentPageIndex == 0
-               ?  NurseHomePage()// Show Text when index is 0
+                ? NurseHomePage() // Show Text when index is 0
                 : currentPageIndex == 1
-                ? NotificationPage()
+                ? Chatbot_index_Nurse() // Show Chatbot when index is 1
                 : currentPageIndex == 2
-                ? Chatbot_index_Nurse()
+                ? NotificationPage()
                 : currentPageIndex == 3
                 ? PersonalPage() // Show Index3Page when index is 3
                 : Text("Other Content"), // Default content for other indices

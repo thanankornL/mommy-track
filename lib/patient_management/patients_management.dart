@@ -14,11 +14,12 @@ class UserManagementPage extends StatefulWidget {
 
 class _UserManagementPageState extends State<UserManagementPage> {
   @override
+
   Widget build(BuildContext context) {
     double screenHeight = MediaQuery.of(context).size.height;
     double screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
-      appBar: AppBar(title: Text("User Management")),
+      appBar: AppBar(title: Text("User Management"),backgroundColor: Colors.green,),
       body: Column(
         children: [
           Expanded(

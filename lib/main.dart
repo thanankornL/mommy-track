@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:animated_notch_bottom_bar/animated_notch_bottom_bar/animated_notch_bottom_bar.dart';
@@ -24,7 +25,8 @@ void main() async {
               .light, // For dark icons (use Brightness.light for white icons)
     ),
   );
-    runApp(const MyApp());
+  await dotenv.load(fileName: '.env');
+  runApp(const MyApp());
 }
 
 class MyApp extends StatefulWidget {

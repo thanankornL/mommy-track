@@ -230,11 +230,11 @@ class _NurseHomePage extends State<NurseHomePage> {
           ],
         ),
         toolbarHeight: 180,
-        backgroundColor: primaryGreen,
+        backgroundColor: Colors.green[700],
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [primaryGreen, darkGreen],
+              colors: [Colors.green[600]!, Colors.green[700]!],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -388,30 +388,7 @@ class _NurseHomePage extends State<NurseHomePage> {
             
             buildPatientsTable(),
             SizedBox(height: screenHeight * 0.02),
-            Container(
-              margin: EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                children: [
-                  Icon(Icons.campaign_outlined, color: primaryGreen, size: 24),
-                  SizedBox(width: 8),
-                  Text(
-                    'ข่าวสารและประชาสัมพันธ์',
-                    style: TextStyle(
-                      fontFamily: "Anuphan",
-                      fontSize: screenWidth * 0.05,
-                      fontWeight: FontWeight.bold,
-                      color: textPrimary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: screenHeight * 0.02),
 
-            // Carousel
-            SizedBox(height: screenHeight * 0.3, child: content(context)),
-
-            SizedBox(height: screenHeight * 0.05),
           ],
         ),
       ),
@@ -491,54 +468,9 @@ class _NurseHomePage extends State<NurseHomePage> {
     );
   }
 
-  Widget content(BuildContext context) {
-    return CarouselSlider(
-      items:
-          ['assets/jk/1.jpg', 'assets/jk/2.jpg', 'assets/jk/3.jpg'].map((
-            imagePath,
-          ) {
-            return Container(
-              margin: const EdgeInsets.symmetric(horizontal: 8),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: primaryGreen.withOpacity(0.3),
-                    blurRadius: 10,
-                    offset: Offset(0, 5),
-                  ),
-                ],
-                border: Border.all(
-                  color: primaryGreen.withOpacity(0.2),
-                  width: 2,
-                ),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(18),
-                child: Stack(
-                  children: [
-                    Image.asset(
-                      imagePath,
-                      fit: BoxFit.cover,
-                      width: MediaQuery.of(context).size.width * 0.55,
-                      height: double.infinity,
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }).toList(),
-      options: CarouselOptions(
-        height: MediaQuery.of(context).size.height * 0.8,
-        autoPlay: true,
-        enlargeCenterPage: true,
-        aspectRatio: 16 / 9,
-        viewportFraction: 0.7,
-      ),
-    );
-  }
 
-  // เพิ่มใน NurseHomePage class
+
+
 
   // เพิ่มตัวแปรสำหรับเก็บข้อมูลผู้ป่วย
   List<Map<String, dynamic>> patientsList = [];

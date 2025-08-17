@@ -44,12 +44,12 @@ class _PatientPageState extends State<PatientPage> {
           BottomNavigationBarItem(
             
             icon: Icon(Icons.chat),
-            label: 'Chatbot',
+            label: 'แชทบอท',
           ),
           BottomNavigationBarItem(
            
            icon: Icon(Icons.person),
-            label: 'User',
+            label: 'โปรไฟล์',
           ),
         ],
       ),

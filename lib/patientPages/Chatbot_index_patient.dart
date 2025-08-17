@@ -12,6 +12,7 @@ class Chatbot_index_patient extends StatefulWidget {
 
 class _Chatbot_index_patientState extends State<Chatbot_index_patient> {
   final TextEditingController _controller = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
 
   final List<Message> _message = [
     Message(text: 'Hi', isUser: true),
@@ -19,23 +20,42 @@ class _Chatbot_index_patientState extends State<Chatbot_index_patient> {
     Message(text: 'Great are you ', isUser: true),
     Message(text: "I'm excellent", isUser: false),
   ];
+  
   bool _isLoading = false;
-  callGeminiModel() async {
-    try {
-      if (_controller.text.isNotEmpty) {
-        setState(() {
-          _message.add(Message(text: _controller.text, isUser: true));
-          _isLoading = true;
-        });
+
+  // ฟังก์ชันเลื่อนไปข้อความล่าสุด
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
       }
+    });
+  }
+
+  callGeminiModel() async {
+    if (_controller.text.trim().isEmpty) return;
+    
+    try {
+      final userMessage = _controller.text.trim();
+      
+      setState(() {
+        _message.add(Message(text: userMessage, isUser: true));
+        _isLoading = true;
+      });
+      
+      _controller.clear();
+      _scrollToBottom();
 
       final model = GenerativeModel(
-        model: 'gemini-2.5-flash', // ✅ อย่าลืมแก้ชื่อโมเดลด้วย
+        model: 'gemini-2.5-flash',
         apiKey: dotenv.env["GOOGLE_API_KEY"]!,
       );
 
-      final prompt = _controller.text.trim();
-      final content = [Content.text(prompt)];
+      final content = [Content.text(userMessage)];
       final response = await model.generateContent(content);
 
       setState(() {
@@ -45,13 +65,14 @@ class _Chatbot_index_patientState extends State<Chatbot_index_patient> {
         _isLoading = false;
       });
 
-      _controller.clear();
+      _scrollToBottom();
     } catch (e) {
       print("Error : $e");
       setState(() {
         _message.add(Message(text: "❌ Error: ${e.toString()}", isUser: false));
         _isLoading = false;
       });
+      _scrollToBottom();
     }
   }
 
@@ -59,30 +80,60 @@ class _Chatbot_index_patientState extends State<Chatbot_index_patient> {
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
+    
     return Scaffold(
+      backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
         centerTitle: false,
-        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-        elevation: 2,
-        shadowColor: const Color.fromARGB(255, 221, 221, 221),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(15)),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        shadowColor: Colors.black.withOpacity(0.1),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
         ),
         title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              children: [
-                Image.asset(
-                  'assets/chatbot/bot.png',
-                  width: screenWidth * 0.09,
+            Container(
+              width: screenWidth * 0.12,
+              height: screenWidth * 0.12,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-                SizedBox(width: 10),
+                borderRadius: BorderRadius.circular(15),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF667eea).withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Icon(
+                Icons.smart_toy_rounded,
+                color: Colors.white,
+                size: screenWidth * 0.06,
+              ),
+            ),
+            const SizedBox(width: 15),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 Text(
-                  'Chatbot_GPT',
+                  'AI Assistant',
                   style: TextStyle(
-                    color: const Color.fromARGB(255, 0, 0, 0),
-                    fontSize: screenHeight * 0.02,
+                    color: const Color(0xFF2D3748),
+                    fontSize: screenHeight * 0.022,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  'พร้อมให้บริการ',
+                  style: TextStyle(
+                    color: const Color(0xFF718096),
+                    fontSize: screenHeight * 0.014,
                   ),
                 ),
               ],
@@ -90,95 +141,244 @@ class _Chatbot_index_patientState extends State<Chatbot_index_patient> {
           ],
         ),
       ),
-
       body: Column(
         children: [
           Expanded(
             child: ListView.builder(
-              itemCount: _message.length,
+              controller: _scrollController,
+              padding: const EdgeInsets.all(16),
+              itemCount: _message.length + (_isLoading ? 1 : 0),
               itemBuilder: (context, index) {
+                // แสดงการพิมพ์ของ AI
+                if (index == _message.length && _isLoading) {
+                  return _buildTypingIndicator();
+                }
+                
                 final message = _message[index];
-                return ListTile(
-                  title: Align(
-                    alignment:
-                        message.isUser
-                            ? Alignment.centerRight
-                            : Alignment.centerLeft,
-                    child: Container(
-                      padding: EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: message.isUser ? Colors.blue : Colors.grey[300],
-                        borderRadius:
-                            message.isUser
-                                ? BorderRadius.only(
-                                  topLeft: Radius.circular(20),
-                                  bottomLeft: Radius.circular(20),
-                                  bottomRight: Radius.circular(20),
-                                )
-                                : BorderRadius.only(
-                                  topRight: Radius.circular(20),
-                                  bottomLeft: Radius.circular(20),
-                                  bottomRight: Radius.circular(20),
-                                ),
-                                
-                      ),
-                      child: Text(
-                        message.text,
-                        style: TextStyle(
-                          fontFamily: 'Inter',
-                          color: message.isUser ? Colors.white : Colors.black,
-                        ),
-                      ),
-                    ),
-                  ),
-                );
+                return _buildMessageBubble(message, screenWidth);
               },
             ),
           ),
-          //input user
-          Padding(
-            padding: const EdgeInsets.only(
-              top: 16,
-              bottom: 32,
-              left: 16,
-              right: 16,
-            ),
-            child: Container(
+          _buildInputField(screenWidth),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMessageBubble(Message message, double screenWidth) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        mainAxisAlignment: 
+            message.isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (!message.isUser) ...[
+            Container(
+              width: 35,
+              height: 35,
               decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+                ),
+                borderRadius: BorderRadius.circular(17.5),
+              ),
+              child: const Icon(
+                Icons.smart_toy_rounded,
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(32),
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 8),
+          ],
+          Flexible(
+            child: Container(
+              constraints: BoxConstraints(maxWidth: screenWidth * 0.75),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                gradient: message.isUser
+                    ? const LinearGradient(
+                        colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      )
+                    : null,
+                color: message.isUser ? null : Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: const Radius.circular(20),
+                  topRight: const Radius.circular(20),
+                  bottomLeft: Radius.circular(message.isUser ? 20 : 5),
+                  bottomRight: Radius.circular(message.isUser ? 5 : 20),
+                ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.5),
-                    spreadRadius: 5,
-                    blurRadius: 7,
-                    offset: Offset(0, 3),
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
                   ),
                 ],
               ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _controller,
-                      decoration: InputDecoration(
-                        hintText: "Write your mesage.....",
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 20),
-                      ),
-                    ),
-                  ),
+              child: Text(
+                message.text,
+                style: TextStyle(
+                  color: message.isUser ? Colors.white : const Color(0xFF2D3748),
+                  fontSize: 16,
+                  height: 1.4,
+                ),
+              ),
+            ),
+          ),
+          if (message.isUser) ...[
+            const SizedBox(width: 8),
+            Container(
+              width: 35,
+              height: 35,
+              decoration: BoxDecoration(
+                color: const Color(0xFF4A5568),
+                borderRadius: BorderRadius.circular(17.5),
+              ),
+              child: const Icon(
+                Icons.person,
+                color: Colors.white,
+                size: 20,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
 
-                  SizedBox(width: 8),
-                  Padding(
-                    padding: const EdgeInsets.all(1.0),
-                    child: GestureDetector(
-                      onTap: callGeminiModel,
-                      child: Icon(Icons.send),
+  Widget _buildTypingIndicator() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        children: [
+          Container(
+            width: 35,
+            height: 35,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+              ),
+              borderRadius: BorderRadius.circular(17.5),
+            ),
+            child: const Icon(
+              Icons.smart_toy_rounded,
+              color: Colors.white,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'AI กำลังพิมพ์',
+                  style: TextStyle(
+                    color: const Color(0xFF718096),
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      const Color(0xFF667eea),
                     ),
                   ),
-                  SizedBox(width: 20),
-                ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInputField(double screenWidth) {
+    return Container(
+      margin: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _controller,
+              textInputAction: TextInputAction.send,
+              onSubmitted: (value) => callGeminiModel(), // เพิ่มการกด Enter
+              decoration: const InputDecoration(
+                hintText: "พิมพ์ข้อความของคุณ...",
+                hintStyle: TextStyle(color: Color(0xFFA0AEC0)),
+                border: InputBorder.none,
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 20, 
+                  vertical: 15
+                ),
+              ),
+              style: const TextStyle(
+                fontSize: 16,
+                color: Color(0xFF2D3748),
+              ),
+            ),
+          ),
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            child: GestureDetector(
+              onTap: _isLoading ? null : callGeminiModel,
+              child: Container(
+                width: 45,
+                height: 45,
+                decoration: BoxDecoration(
+                  gradient: _isLoading 
+                      ? null 
+                      : const LinearGradient(
+                          colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                  color: _isLoading ? const Color(0xFFE2E8F0) : null,
+                  borderRadius: BorderRadius.circular(22.5),
+                  boxShadow: [
+                    if (!_isLoading)
+                      BoxShadow(
+                        color: const Color(0xFF667eea).withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                  ],
+                ),
+                child: Icon(
+                  Icons.send_rounded,
+                  color: _isLoading ? const Color(0xFFA0AEC0) : Colors.white,
+                  size: 20,
+                ),
               ),
             ),
           ),

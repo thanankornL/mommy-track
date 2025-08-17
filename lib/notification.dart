@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:intl/intl.dart'; 
+import 'package:intl/intl.dart';
 
 class NotificationPage extends StatefulWidget {
   const NotificationPage({super.key});
@@ -15,12 +15,15 @@ class NotificationPage extends StatefulWidget {
 
 class _NotificationPageState extends State<NotificationPage> {
   List<dynamic> notifications = [];
+  List<dynamic> changeRequests = [];
   bool isLoading = true;
+  bool isLoadingRequests = true;
 
   @override
   void initState() {
     super.initState();
     fetchNotifications();
+    fetchChangeRequests();
   }
 
   Future<String> getSessionUsername() async {
@@ -52,54 +55,860 @@ class _NotificationPageState extends State<NotificationPage> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    double screenHeight = MediaQuery.of(context).size.height;
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.green, Colors.white],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
-      ),
-      child: ListView(
-        children: [
-          SizedBox(height: 20),
-          Card(
-            margin: EdgeInsets.all(5.0),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10.0),
-            ),
-            color: Colors.white,
-            child: SizedBox(
-              height: screenHeight * 0.8,
-              child:
-                  isLoading
-                      ? Center(
-                        child: CircularProgressIndicator(
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      )
-                      : ListView.separated(
-                        itemCount: notifications.length,
-                        separatorBuilder: (context, index) => Divider(),
-                        itemBuilder: (context, index) {
-                          final item = notifications[index];
-                          return ListTile(
-                            leading: Icon(Icons.notifications),
-                            title: Text(item['title'] ?? 'No title'),
-                            subtitle: Text(item['body'] ?? 'No message'),
-                          );
-                        },
+  // ฟังก์ชันดึงข้อมูลคำขอเปลี่ยนวันนัด
+  Future<void> fetchChangeRequests() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/api/get_change_requests'));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success']) {
+          setState(() {
+            changeRequests = data['changeRequests'] ?? [];
+            isLoadingRequests = false;
+          });
+        }
+      } else {
+        setState(() {
+          isLoadingRequests = false;
+        });
+      }
+    } catch (e) {
+      print('Error fetching change requests: $e');
+      setState(() {
+        isLoadingRequests = false;
+      });
+    }
+  }
+
+  // ฟังก์ชันอนุมัติการเปลี่ยนวันนัด
+  Future<void> approveAppointmentChange(String username, int step, DateTime approvedDate) async {
+    final nurseUsername = await getSessionUsername();
+    
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/approve_appointment_change'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'username': username,
+          'step': step,
+          'approvedDate': approvedDate.toIso8601String(),
+          'nurseUsername': nurseUsername,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success']) {
+          _showSnackBar('อนุมัติการเปลี่ยนวันนัดเรียบร้อยแล้ว', Colors.green);
+          // รีเฟรชข้อมูล
+          fetchChangeRequests();
+        } else {
+          _showSnackBar('เกิดข้อผิดพลาดในการอนุมัติ', Colors.red);
+        }
+      }
+    } catch (e) {
+      _showSnackBar('เกิดข้อผิดพลาด: $e', Colors.red);
+    }
+  }
+
+  // ฟังก์ชันปฏิเสธการเปลี่ยนวันนัด
+  Future<void> rejectAppointmentChange(String username, int step, String reason) async {
+    final nurseUsername = await getSessionUsername();
+    
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/reject_appointment_change'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'username': username,
+          'step': step,
+          'rejectionReason': reason,
+          'nurseUsername': nurseUsername,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success']) {
+          _showSnackBar('ปฏิเสธการเปลี่ยนวันนัดเรียบร้อยแล้ว', Colors.orange);
+          // รีเฟรชข้อมูล
+          fetchChangeRequests();
+        } else {
+          _showSnackBar('เกิดข้อผิดพลาดในการปฏิเสธ', Colors.red);
+        }
+      }
+    } catch (e) {
+      _showSnackBar('เกิดข้อผิดพลาด: $e', Colors.red);
+    }
+  }
+
+  // แสดง Dialog สำหรับอนุมัติ/ปฏิเสธ
+  void _showApprovalDialog(Map<String, dynamic> request) {
+    DateTime? selectedDate = DateTime.tryParse(request['requestedDate']);
+    String rejectionReason = '';
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: Text(
+                'อนุมัติการขอเปลี่ยนวันนัด',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.green[700],
+                ),
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // ข้อมูลผู้ป่วย
+                    Container(
+                      padding: EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.blue[50],
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.blue[200]!),
                       ),
-            ),
-          ),
-        ],
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('ผู้ป่วย: ${request['patientName'] ?? 'N/A'}'),
+                          Text('การตรวจ: ${request['stepTitle'] ?? 'N/A'}'),
+                          Text('วันนัดเดิม: ${DateFormat('dd/MM/yyyy').format(DateTime.parse(request['nextAppointment']))}'),
+                          Text('วันที่ขอเปลี่ยน: ${DateFormat('dd/MM/yyyy').format(DateTime.parse(request['requestedDate']))}'),
+                          Text('เหตุผล: ${request['changeReason'] ?? 'ไม่ระบุ'}'),
+                        ],
+                      ),
+                    ),
+                    
+                    SizedBox(height: 16),
+                    
+                    // เลือกวันใหม่สำหรับอนุมัติ
+                    Text('เลือกวันที่อนุมัติ:', style: TextStyle(fontWeight: FontWeight.bold)),
+                    SizedBox(height: 8),
+                    Container(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () async {
+                          final DateTime? picked = await showDatePicker(
+                            context: context,
+                            initialDate: selectedDate ?? DateTime.now(),
+                            firstDate: DateTime.now(),
+                            lastDate: DateTime.now().add(Duration(days: 365)),
+                            selectableDayPredicate: (DateTime date) {
+                              // ไม่อนุญาตให้เลือกวันเสาร์และอาทิตย์
+                              return date.weekday != DateTime.saturday &&
+                                     date.weekday != DateTime.sunday;
+                            },
+                          );
+                          if (picked != null) {
+                            setDialogState(() {
+                              selectedDate = picked;
+                            });
+                          }
+                        },
+                        icon: Icon(Icons.calendar_today),
+                        label: Text(
+                          selectedDate == null 
+                            ? 'เลือกวันที่'
+                            : DateFormat('dd/MM/yyyy').format(selectedDate!),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green[100],
+                          foregroundColor: Colors.green[700],
+                        ),
+                      ),
+                    ),
+                    
+                    SizedBox(height: 16),
+                    
+                    // เหตุผลในการปฏิเสธ (ถ้าจำเป็น)
+                    Text('เหตุผลในการปฏิเสธ (ถ้าไม่อนุมัติ):', 
+                         style: TextStyle(fontWeight: FontWeight.bold)),
+                    SizedBox(height: 8),
+                    TextField(
+                      onChanged: (value) {
+                        rejectionReason = value;
+                      },
+                      decoration: InputDecoration(
+                        hintText: 'กรอกเหตุผลในการปฏิเสธ...',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      maxLines: 2,
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                // ปฏิเสธ
+                TextButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    if (rejectionReason.trim().isNotEmpty) {
+                      rejectAppointmentChange(
+                        request['username'],
+                        request['step'],
+                        rejectionReason,
+                      );
+                    } else {
+                      _showSnackBar('กรุณากรอกเหตุผลในการปฏิเสธ', Colors.orange);
+                    }
+                  },
+                  icon: Icon(Icons.close, color: Colors.red),
+                  label: Text('ปฏิเสธ', style: TextStyle(color: Colors.red)),
+                ),
+                
+                // อนุมัติ
+                ElevatedButton.icon(
+                  onPressed: selectedDate == null ? null : () {
+                    Navigator.of(context).pop();
+                    approveAppointmentChange(
+                      request['username'],
+                      request['step'],
+                      selectedDate!,
+                    );
+                  },
+                  icon: Icon(Icons.check, color: Colors.white),
+                  label: Text('อนุมัติ', style: TextStyle(color: Colors.white)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showSnackBar(String message, Color color) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: color,
+        duration: const Duration(seconds: 3),
       ),
     );
   }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.green, Colors.white],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: DefaultTabController(
+          length: 2,
+          child: Column(
+            children: [
+              // AppBar with Tabs
+              Container(
+                padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.green[600]!, Colors.green[400]!],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black26,
+                      offset: Offset(0, 2),
+                      blurRadius: 6,
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    // Title Bar
+                    Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.notifications,
+                            color: Colors.white,
+                            size: 28,
+                          ),
+                          SizedBox(width: 12),
+                          Text(
+                            'การแจ้งเตือน',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    
+                    // Tab Bar
+                    Container(
+                      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black12,
+                            offset: Offset(0, 2),
+                            blurRadius: 4,
+                          ),
+                        ],
+                      ),
+                      child: TabBar(
+                        labelColor: Colors.green[700],
+                        unselectedLabelColor: Colors.grey[600],
+                        indicatorColor: Colors.transparent,
+                        indicator: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          color: Colors.green[50],
+                        ),
+                        dividerColor: Colors.transparent,
+                        labelStyle: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                        unselectedLabelStyle: TextStyle(
+                          fontWeight: FontWeight.normal,
+                          fontSize: 14,
+                        ),
+                        tabs: [
+                          Tab(
+                            height: 48,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.notifications, size: 20),
+                                SizedBox(width: 8),
+                                Text("การแจ้งเตือน"),
+                              ],
+                            ),
+                          ),
+                          Tab(
+                            height: 48,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.approval, size: 20),
+                                SizedBox(width: 8),
+                                Flexible(
+                                  child: Text(
+                                    "คำขออนุมัติ${changeRequests.length > 0 ? ' (${changeRequests.length})' : ''}",
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                  ],
+                ),
+              ),
+              
+              // Tab Bar View
+              Expanded(
+                child: TabBarView(
+                  children: [
+                    // Tab 1: การแจ้งเตือนปกติ
+                    _buildNotificationsTab(),
+                    
+                    // Tab 2: คำขออนุมัติการเปลี่ยนวันนัด
+                    _buildChangeRequestsTab(),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNotificationsTab() {
+    return Padding(
+      padding: EdgeInsets.all(16),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              offset: Offset(0, 2),
+              blurRadius: 8,
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: isLoading
+              ? Center(
+                  child: CircularProgressIndicator(
+                    color: Colors.green[600],
+                  ),
+                )
+              : notifications.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.notifications_off,
+                            size: 64,
+                            color: Colors.grey[400],
+                          ),
+                          SizedBox(height: 16),
+                          Text(
+                            'ไม่มีการแจ้งเตือน',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.grey[600],
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : RefreshIndicator(
+                      onRefresh: fetchNotifications,
+                      color: Colors.green[600],
+                      child: ListView.separated(
+                        padding: EdgeInsets.all(8),
+                        itemCount: notifications.length,
+                        separatorBuilder: (context, index) => Divider(
+                          height: 1,
+                          color: Colors.grey[200],
+                        ),
+                        itemBuilder: (context, index) {
+                          final item = notifications[index];
+                          return ListTile(
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                            leading: Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: _getNotificationColor(item['type']).withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(
+                                _getNotificationIcon(item['type']),
+                                color: _getNotificationColor(item['type']),
+                                size: 24,
+                              ),
+                            ),
+                            title: Text(
+                              item['title'] ?? 'ไม่มีหัวข้อ',
+                              style: TextStyle(
+                                fontWeight: item['isRead'] == true 
+                                    ? FontWeight.w500 
+                                    : FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                SizedBox(height: 4),
+                                Text(
+                                  item['body'] ?? 'ไม่มีข้อความ',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey[700],
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                SizedBox(height: 6),
+                                Text(
+                                  _formatTimestamp(item['timestamp']),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[500],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            trailing: item['isRead'] == true 
+                                ? null 
+                                : Container(
+                                    width: 10,
+                                    height: 10,
+                                    decoration: BoxDecoration(
+                                      color: Colors.red,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                            onTap: () {
+                              // Handle notification tap if needed
+                            },
+                          );
+                        },
+                      ),
+                    ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildChangeRequestsTab() {
+    return Padding(
+      padding: EdgeInsets.all(16),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              offset: Offset(0, 2),
+              blurRadius: 8,
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: isLoadingRequests
+              ? Center(
+                  child: CircularProgressIndicator(
+                    color: Colors.green[600],
+                  ),
+                )
+              : changeRequests.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.approval,
+                            size: 64,
+                            color: Colors.grey[400],
+                          ),
+                          SizedBox(height: 16),
+                          Text(
+                            'ไม่มีคำขออนุมัติ',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.grey[600],
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : RefreshIndicator(
+                      onRefresh: fetchChangeRequests,
+                      color: Colors.green[600],
+                      child: ListView.separated(
+                        padding: EdgeInsets.all(8),
+                        itemCount: changeRequests.length,
+                        separatorBuilder: (context, index) => SizedBox(height: 8),
+                        itemBuilder: (context, index) {
+                          final request = changeRequests[index];
+                          return Card(
+                            margin: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                            elevation: 3,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // หัวข้อ
+                                  Row(
+                                    children: [
+                                      Container(
+                                        width: 40,
+                                        height: 40,
+                                        decoration: BoxDecoration(
+                                          color: Colors.blue[50],
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                        child: Icon(
+                                          Icons.person,
+                                          color: Colors.blue[600],
+                                          size: 22,
+                                        ),
+                                      ),
+                                      SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              request['patientName'] ?? 'ไม่ทราบชื่อ',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16,
+                                                color: Colors.blue[700],
+                                              ),
+                                            ),
+                                            Text(
+                                              request['stepTitle'] ?? 'N/A',
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                color: Colors.grey[600],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Container(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.orange[100],
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        child: Text(
+                                          'รออนุมัติ',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.orange[700],
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  
+                                  SizedBox(height: 16),
+                                  
+                                  // รายละเอียด
+                                  Container(
+                                    padding: EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[50],
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(color: Colors.grey[200]!),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        _buildInfoRow('วันนัดเดิม', _formatDate(request['nextAppointment'])),
+                                        SizedBox(height: 6),
+                                        _buildInfoRow(
+                                          'วันที่ขอเปลี่ยน', 
+                                          _formatDate(request['requestedDate']),
+                                          valueColor: Colors.orange[700],
+                                        ),
+                                        if (request['changeReason'] != null && 
+                                            request['changeReason'].toString().isNotEmpty) ...[
+                                          SizedBox(height: 6),
+                                          _buildInfoRow(
+                                            'เหตุผล', 
+                                            request['changeReason'],
+                                            valueStyle: TextStyle(
+                                              fontStyle: FontStyle.italic,
+                                              color: Colors.grey[700],
+                                            ),
+                                          ),
+                                        ],
+                                        SizedBox(height: 6),
+                                        _buildInfoRow(
+                                          'วันที่ส่งคำขอ', 
+                                          _formatTimestamp(request['requestedAt']),
+                                          valueStyle: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey[600],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  
+                                  SizedBox(height: 16),
+                                  
+                                  // ปุ่มอนุมัติ/ปฏิเสธ
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: OutlinedButton.icon(
+                                          onPressed: () {
+                                            _showApprovalDialog(request);
+                                          },
+                                          icon: Icon(Icons.visibility, size: 18),
+                                          label: Text('ดูรายละเอียด'),
+                                          style: OutlinedButton.styleFrom(
+                                            foregroundColor: Colors.blue[700],
+                                            side: BorderSide(color: Colors.blue[300]!),
+                                            padding: EdgeInsets.symmetric(vertical: 12),
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(width: 12),
+                                      Expanded(
+                                        child: ElevatedButton.icon(
+                                          onPressed: () {
+                                            _showApprovalDialog(request);
+                                          },
+                                          icon: Icon(Icons.approval, size: 18),
+                                          label: Text('อนุมัติ/ปฏิเสธ'),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.green,
+                                            foregroundColor: Colors.white,
+                                            padding: EdgeInsets.symmetric(vertical: 12),
+                                            elevation: 2,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value, {Color? valueColor, TextStyle? valueStyle}) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 100,
+          child: Text(
+            '$label:',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: valueStyle ?? TextStyle(
+              color: valueColor,
+              fontSize: 14,
+              fontWeight: valueColor != null ? FontWeight.w600 : FontWeight.normal,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Helper methods (เพิ่มเมธอดเหล่านี้ถ้ายังไม่มี)
+  IconData _getNotificationIcon(String? type) {
+    switch (type) {
+      case 'appointment':
+        return Icons.event;
+      case 'reminder':
+        return Icons.alarm;
+      case 'urgent':
+        return Icons.priority_high;
+      default:
+        return Icons.notifications;
+    }
+  }
+
+
+
+  String _formatTimestamp(dynamic timestamp) {
+    if (timestamp == null) return 'ไม่ทราบเวลา';
+    try {
+      DateTime dateTime = DateTime.parse(timestamp.toString());
+      return DateFormat('dd/MM/yyyy HH:mm').format(dateTime);
+    } catch (e) {
+      return 'ไม่ทราบเวลา';
+    }
+  }
+
+  String _formatDate(dynamic date) {
+    if (date == null) return 'ไม่ทราบวันที่';
+    try {
+      DateTime dateTime = DateTime.parse(date.toString());
+      return DateFormat('dd/MM/yyyy').format(dateTime);
+    } catch (e) {
+      return 'ไม่ทราบวันที่';
+    }
+  }
 }
+  // ฟังก์ชันช่วยเหลือ
+  IconData _getNotificationIcon(String? type) {
+    switch (type) {
+      case 'appointment':
+        return Icons.calendar_today;
+      case 'appointment_confirmed':
+        return Icons.check_circle;
+      case 'appointment_approved':
+        return Icons.approval;
+      case 'appointment_cancelled':
+        return Icons.cancel;
+      case 'appointment_change_request':
+        return Icons.schedule;
+      default:
+        return Icons.notifications;
+    }
+  }
+
+  Color _getNotificationColor(String? type) {
+    switch (type) {
+      case 'appointment':
+        return Colors.blue;
+      case 'appointment_confirmed':
+        return Colors.green;
+      case 'appointment_approved':
+        return Colors.green;
+      case 'appointment_cancelled':
+        return Colors.red;
+      case 'appointment_change_request':
+        return Colors.orange;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  String _formatTimestamp(dynamic timestamp) {
+    if (timestamp == null) return '';
+    try {
+      final date = DateTime.parse(timestamp.toString());
+      return DateFormat('dd/MM/yyyy HH:mm').format(date);
+    } catch (e) {
+      return timestamp.toString();
+    }
+  }
+
+  String _formatDate(dynamic dateString) {
+    if (dateString == null) return 'ไม่ระบุ';
+    try {
+      final date = DateTime.parse(dateString.toString());
+      return DateFormat('dd/MM/yyyy').format(date);
+    } catch (e) {
+      return dateString.toString();
+    }
+  }
+
 
 // --------- User Model ----------
 class User {
@@ -111,9 +920,7 @@ class User {
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id:
-          json['_id'] ??
-          json['username'], // fallback to username if _id not available
+      id: json['_id'] ?? json['username'],
       username: json['username'],
       displayname: json['display_name'],
     );
@@ -163,7 +970,7 @@ class AppointmentStep {
       AppointmentStep(
         stepNumber: 4,
         title: "การแจ้งเตือนที่ 5",
-        description: "อายุครrrรภ์ 34 สัปดาห์",
+        description: "อายุครรภ์ 34 สัปดาห์",
         weekGA: 34,
       ),
       AppointmentStep(
@@ -191,22 +998,22 @@ class AppointmentStep {
 // --------- Fetch Users ----------
 Future<List<User>> fetchUsers() async {
   try {
-    print('Attempting to fetch users from: $baseUrl/api/users'); // Debug
+    print('Attempting to fetch users from: $baseUrl/api/users');
     final response = await http.get(Uri.parse('$baseUrl/api/users'));
 
-    print('Response status: ${response.statusCode}'); // Debug
-    print('Response body: ${response.body}'); // Debug
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
 
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
-      print('Users data: $data'); // Debug
+      print('Users data: $data');
       return data.map((userJson) => User.fromJson(userJson)).toList();
     } else {
-      print('Failed to load users: ${response.statusCode}'); // Debug
+      print('Failed to load users: ${response.statusCode}');
       throw Exception('Failed to load users');
     }
   } catch (e) {
-    print('Error in fetchUsers: $e'); // Debug
+    print('Error in fetchUsers: $e');
     rethrow;
   }
 }
@@ -285,7 +1092,7 @@ class _SendNotificationAndAppointmentState
   }
 
   // ดึงข้อมูล LMP ของผู้ป่วย
-   Future<void> fetchPatientLMP() async {
+  Future<void> fetchPatientLMP() async {
     if (selectedUserForAppointment == null) return;
 
     setState(() => isLoadingPatientData = true);
@@ -518,6 +1325,7 @@ class _SendNotificationAndAppointmentState
           tabs: [
             Tab(icon: Icon(Icons.notifications), text: "ส่งการแจ้งเตือน"),
             Tab(icon: Icon(Icons.calendar_month), text: "จองการนัดหมาย"),
+            Tab(icon: Icon(Icons.approval), text: "คำขออนุมัติ"),
           ],
         ),
       ),
@@ -527,8 +1335,10 @@ class _SendNotificationAndAppointmentState
           // Tab 1: Notification
           _buildNotificationTab(),
 
-          // Tab 2: Smart Appointment Booking
+        
           _buildSmartAppointmentTab(),
+
+
         ],
       ),
     );
@@ -553,7 +1363,7 @@ class _SendNotificationAndAppointmentState
                     Icon(
                       Icons.notifications_active,
                       size: 48,
-                      color: Colors.blue[600],
+                      color: Colors.green[600],
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -561,7 +1371,7 @@ class _SendNotificationAndAppointmentState
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 22,
-                        color: Colors.blue[700],
+                        color: Colors.green[700],
                       ),
                     ),
                   ],
@@ -593,7 +1403,7 @@ class _SendNotificationAndAppointmentState
                   decoration: InputDecoration(
                     labelText: "เลือกผู้ป่วย",
                     border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.person, color: Colors.blue),
+                    prefixIcon: Icon(Icons.person, color: Colors.green),
                   ),
                 ),
                 popupProps: PopupProps.menu(
@@ -614,7 +1424,7 @@ class _SendNotificationAndAppointmentState
                 decoration: InputDecoration(
                   labelText: "หัวข้อการแจ้งเตือน",
                   border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.title, color: Colors.blue),
+                  prefixIcon: Icon(Icons.title, color: Colors.green),
                 ),
               ),
 
@@ -625,7 +1435,7 @@ class _SendNotificationAndAppointmentState
                 decoration: InputDecoration(
                   labelText: "ข้อความแจ้งเตือน",
                   border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.message, color: Colors.blue),
+                  prefixIcon: Icon(Icons.message, color: Colors.green),
                 ),
                 maxLines: 3,
               ),
@@ -640,20 +1450,19 @@ class _SendNotificationAndAppointmentState
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    backgroundColor: Colors.blue,
+                    backgroundColor: Colors.green,
                   ),
                   onPressed: isLoadingNotification ? null : sendNotification,
-                  icon:
-                      isLoadingNotification
-                          ? SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
-                          )
-                          : Icon(Icons.send, color: Colors.white),
+                  icon: isLoadingNotification
+                      ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Icon(Icons.send, color: Colors.white),
                   label: Text(
                     isLoadingNotification ? 'กำลังส่ง...' : 'ส่งการแจ้งเตือน',
                     style: TextStyle(fontSize: 18, color: Colors.white),
@@ -844,94 +1653,28 @@ class _SendNotificationAndAppointmentState
                 ),
               ),
               const SizedBox(height: 8),
-              DropdownButtonFormField<AppointmentStep>(
-                decoration: InputDecoration(
-                  prefixIcon: const Icon(
-                    Icons.notifications,
-                    color: Colors.green,
-                  ),
-                  border: OutlineInputBorder(
+              PopupMenuButton<AppointmentStep>(
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: Colors.green, width: 2),
-                  ),
-                  hintText: 'เลือกการแจ้งเตือน...',
-                ),
-                value: selectedStep,
-                items:
-                    availableSteps.map((step) {
-                      bool isRecommended =
-                          currentGA != null &&
-                          currentGA! >= step.weekGA - 2 &&
-                          currentGA! <= step.weekGA + 2;
-
-                      return DropdownMenuItem<AppointmentStep>(
-                        value: step,
-                        child: Container(
-                          constraints: BoxConstraints(maxWidth: 280),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Flexible(
-                                    child: Text(
-                                      step.title,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color:
-                                            isRecommended
-                                                ? Colors.green[700]
-                                                : null,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  if (isRecommended) ...[
-                                    const SizedBox(width: 4),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 6,
-                                        vertical: 2,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.green[100],
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(
-                                          color: Colors.green[300]!,
-                                        ),
-                                      ),
-                                      child: Text(
-                                        'แนะนำ',
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          color: Colors.green[700],
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                step.description,
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: Colors.grey[600],
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.notifications, color: Colors.green),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          selectedStep?.title ?? 'เลือกการแจ้งเตือน...',
+                          style: const TextStyle(fontSize: 14),
                         ),
-                      );
-                    }).toList(),
-                onChanged: (AppointmentStep? step) async {
+                      ),
+                      const Icon(Icons.arrow_drop_down),
+                    ],
+                  ),
+                ),
+                onSelected: (AppointmentStep step) async {
                   if (_lmpDate == null) {
                     await fetchPatientLMP();
                   }
@@ -941,8 +1684,81 @@ class _SendNotificationAndAppointmentState
                   });
                   updateSuggestedDate();
                 },
-              ),
+                itemBuilder: (context) {
+                  return availableSteps.map((step) {
+                    bool isRecommended = currentGA != null &&
+                        currentGA! >= step.weekGA - 2 &&
+                        currentGA! <= step.weekGA + 2;
 
+                    return PopupMenuItem<AppointmentStep>(
+                      value: step,
+                      height: 80,
+                      child: Container(
+                        width: double.infinity,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    step.title,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                      color: isRecommended
+                                          ? Colors.green[700]
+                                          : null,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                if (isRecommended) ...[
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.green[100],
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: Colors.green[300]!,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      'แนะนำ',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        color: Colors.green[700],
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              step.description,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                                height: 1.2,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList();
+                },
+              ),
               const SizedBox(height: 16),
 
               // แสดงวันที่แนะนำ
@@ -1173,6 +1989,4 @@ class _SendNotificationAndAppointmentState
       ),
     );
   }
-
-
 }

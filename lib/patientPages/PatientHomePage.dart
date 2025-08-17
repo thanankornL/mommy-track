@@ -2,23 +2,12 @@ import 'package:carebellmom/chatting/chat_list_screen.dart';
 import 'package:carebellmom/notification.dart';
 import 'package:carebellmom/patientPages/Chatbot_index_patient.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:flutter_image_slideshow/flutter_image_slideshow.dart';
-import 'package:flutter_speed_dial/flutter_speed_dial.dart';
-import 'package:carebellmom/patientPages/Chatbot_index_patient.dart';
-import 'package:carebellmom/patientPages/viewDetails.dart';
-import 'package:carebellmom/PersonalPage.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:flutter/services.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:carebellmom/config.dart';
 import 'dart:math';
-import 'package:carebellmom/chatting/chat_list_screen.dart';
 
 class PatientHomePage extends StatefulWidget {
   const PatientHomePage({super.key});
@@ -509,7 +498,30 @@ class _PatientHomePage extends State<PatientHomePage> {
                 ],
               ),
             ),
+             Container(
+              margin: EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  Icon(Icons.campaign_outlined, color: Colors.green, size: 24),
+                  SizedBox(width: 8),
+                  Text(
+                    'ข่าวสารและประชาสัมพันธ์',
+                    style: TextStyle(
+                      fontFamily: "Anuphan",
+                      fontSize: screenWidth * 0.05,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.green[700],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: screenHeight * 0.02),
 
+            // Carousel
+            SizedBox(height: screenHeight * 0.3, child: content(context)),
+
+            SizedBox(height: screenHeight * 0.05),
             // Weekly progress section
             Container(
               margin: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
@@ -701,7 +713,52 @@ class PieChartPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
-
+  Widget content(BuildContext context) {
+    return CarouselSlider(
+      items:
+          ['assets/jk/1.jpg', 'assets/jk/2.jpg', 'assets/jk/3.jpg'].map((
+            imagePath,
+          ) {
+            return Container(
+              margin: const EdgeInsets.symmetric(horizontal: 8),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color:Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: Offset(0, 5),
+                  ),
+                ],
+                border: Border.all(
+                  color: Colors.black.withOpacity(0.1),
+                  width: 2,
+                ),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(18),
+                child: Stack(
+                  children: [
+                    Image.asset(
+                      imagePath,
+                      fit: BoxFit.cover,
+                      width: MediaQuery.of(context).size.width * 0.55,
+                      height: double.infinity,
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
+      options: CarouselOptions(
+        height: MediaQuery.of(context).size.height * 0.8,
+        autoPlay: true,
+        enlargeCenterPage: true,
+        aspectRatio: 16 / 9,
+        viewportFraction: 0.7,
+      ),
+    );
+  }
 class NavigationProvider extends ChangeNotifier {
   int _currentIndex = 0;
 
