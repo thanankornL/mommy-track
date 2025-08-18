@@ -335,7 +335,7 @@ class _PersonalPageState extends State<PersonalPage> {
     }
 
     return Scaffold(
-      backgroundColor: Color(0xFF2E8B57), // Light blue background
+      backgroundColor: Colors.green, // Light blue background
       body: SafeArea(
         child: Column(
           children: [

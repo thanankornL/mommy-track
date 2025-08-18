@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
@@ -13,16 +12,13 @@ import 'package:flutter/services.dart';
 import 'package:page_transition/page_transition.dart';
 import 'dart:async';
 
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   SystemChrome.setSystemUIOverlayStyle(
     SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent, // Make status bar transparent
-      statusBarIconBrightness:
-          Brightness
-              .light, // For dark icons (use Brightness.light for white icons)
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
     ),
   );
   await dotenv.load(fileName: '.env');
@@ -34,7 +30,6 @@ class MyApp extends StatefulWidget {
 
   @override
   State<MyApp> createState() => _MyApp();
-  
 }
 
 class _MyApp extends State<MyApp> {
@@ -90,41 +85,29 @@ class IntroPage extends StatelessWidget {
     double screenHeight = MediaQuery.of(context).size.height;
     return Scaffold(
       body: Container(
-        /*
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [const Color.fromARGB(255, 249, 184, 255), Colors.white],
-          ),
-        ),*/
         child: Column(
           children: [
-           
             Align(
-              alignment: Alignment.topLeft, // จัดตำแหน่งที่มุมบนซ้าย
+              alignment: Alignment.topLeft, 
               child: Padding(
                 padding: EdgeInsets.only(
-                  top: screenHeight*0.3,
+                  top: screenHeight * 0.3,
                   left: screenWidth * 0.0155,
-                ), // ระยะห่างจากขอบบนและซ้าย
-                  child: Image.asset(
-              'assets/index_page/Unknown.gif',
-              height: screenHeight * 0.3, // 30% of the screen height
-              width: screenWidth * 0.8, // 50% of the screen width
-              fit: BoxFit.contain, // Ensures the image scales proportionally
-            ),// โลโก้
+                ), 
+                child: Image.asset(
+                  'assets/index_page/Unknown.gif',
+                  height: screenHeight * 0.3, // 30% of the screen height
+                  width: screenWidth * 0.8, // 50% of the screen width
+                  fit:
+                      BoxFit.contain, // Ensures the image scales proportionally
+                ), // โลโก้
               ),
             ),
 
             Padding(
               padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.08),
               child: Text(
-                """Mommy treck แอปพลิเคชันที่จะช่วยคุณ
-  จัดการการตั้งครรภ์และบันทึกสุขภาพ 
-  และรับคำแนะนำจากผู้เชี่ยวชาญอย่างใกล้ชิด
-  เพื่อการดูแลสุขภาพที่ดีที่สุดของคุณและลูกน้อย
-                """,
+                """Mommy treckแอปพลิเคชันที่จะช่วยคุณจัดการการตั้งครรภ์และบันทึกสุขภาพและรับคำแนะนำจากผู้เชี่ยวชาญอย่างใกล้ชิด""",
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontFamily: "Inter",
@@ -218,7 +201,7 @@ class _ConsentPage extends State<ConsentPage> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >= 
+    if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 50) {
       if (!_hasScrolledToBottom) {
         setState(() {
@@ -245,52 +228,49 @@ class _ConsentPage extends State<ConsentPage> {
 
   // แก้ไขในฟังก์ชัน _onAccept() ในคลาส _ConsentPage
 
-void _onAccept() {
-  if (!_isConsentChecked) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('กรุณายืนยันการยินยอมก่อนดำเนินการต่อ'),
-        backgroundColor: Colors.red,
-      ),
-    );
-    return;
-  }
-
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius .circular(16),
+  void _onAccept() {
+    if (!_isConsentChecked) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('กรุณายืนยันการยินยอมก่อนดำเนินการต่อ'),
+          backgroundColor: Colors.red,
         ),
-        title: Row(
-        ),
-        actions: [
-          Row(
-            children: [
-              ElevatedButton(
-                onPressed: () {
-                  // ปิด dialog ก่อน
-                  Navigator.of(context).pop();
-                  
-                  // ใช้ pushAndRemoveUntil เพื่อลบหน้าก่อนหน้าทั้งหมด
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => LoginForm(),
-                    ),
-                    (route) => false, // ลบหน้าทั้งหมดใน stack
-                  );
-                },
-                child: const Text('ตกลง'),
-              ),
-            ],
-          ),
-        ],
       );
-    },
-  );
-}
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(),
+          actions: [
+            Row(
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    // ปิด dialog ก่อน
+                    Navigator.of(context).pop();
+
+                    // ใช้ pushAndRemoveUntil เพื่อลบหน้าก่อนหน้าทั้งหมด
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (context) => LoginForm()),
+                      (route) => false, // ลบหน้าทั้งหมดใน stack
+                    );
+                  },
+                  child: const Text('ตกลง'),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   void _onDecline() {
     showDialog(
@@ -308,7 +288,7 @@ void _onAccept() {
             ],
           ),
           content: const Text(
-            'หากคุณไม่ยินยอม เราจะไม่สามารถให้บริการบางอย่างแก่คุณได้ คุณแน่ใจหรือไม่?'
+            'หากคุณไม่ยินยอม เราจะไม่สามารถให้บริการบางอย่างแก่คุณได้ คุณแน่ใจหรือไม่?',
           ),
           actions: [
             TextButton(
@@ -321,9 +301,7 @@ void _onAccept() {
                 // Handle decline action
                 // Navigator.pushReplacementNamed(context, '/login');
               },
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.red,
-              ),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
               child: const Text('ไม่ยินยอม'),
             ),
           ],
@@ -360,10 +338,7 @@ void _onAccept() {
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [
-                      Color(0xFF2A8854),
-                      Color(0xFF046E3E),
-                    ],
+                    colors: [Color(0xFF2A8854), Color(0xFF046E3E)],
                   ),
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(24),
@@ -474,15 +449,11 @@ void _onAccept() {
                               ],
                             ),
 
-                            _buildSection(
-                              '2. ประเภทข้อมูลที่เราจะเก็บ',
-                              '',
-                              [
-                                'ข้อมูลส่วนบุคคล เช่น ชื่อ-นามสกุล วันเดือนปีเกิด อายุ เลขบัตรประจำตัวประชาชน',
-                                'ข้อมูลสุขภาพ เช่น ประวัติการตั้งครรภ์ การคลอด ประวัติโรคประจำตัว น้ำหนัก ส่วนสูง ความดันโลหิต การตรวจทางห้องปฏิบัติการ ฯลฯ',
-                                'ข้อมูลของทารก เช่น วันคลอด น้ำหนักแรกคลอด การเจริญเติบโต วัคซีนที่ได้รับ',
-                              ],
-                            ),
+                            _buildSection('2. ประเภทข้อมูลที่เราจะเก็บ', '', [
+                              'ข้อมูลส่วนบุคคล เช่น ชื่อ-นามสกุล วันเดือนปีเกิด อายุ เลขบัตรประจำตัวประชาชน',
+                              'ข้อมูลสุขภาพ เช่น ประวัติการตั้งครรภ์ การคลอด ประวัติโรคประจำตัว น้ำหนัก ส่วนสูง ความดันโลหิต การตรวจทางห้องปฏิบัติการ ฯลฯ',
+                              'ข้อมูลของทารก เช่น วันคลอด น้ำหนักแรกคลอด การเจริญเติบโต วัคซีนที่ได้รับ',
+                            ]),
 
                             _buildSection(
                               '3. การรักษาความลับและความปลอดภัยของข้อมูล',
@@ -494,15 +465,11 @@ void _onAccept() {
                               ],
                             ),
 
-                            _buildSection(
-                              '4. สิทธิของเจ้าของข้อมูล',
-                              '',
-                              [
-                                'ท่านมีสิทธิในการขอเข้าถึง แก้ไข หรือลบข้อมูลของตนเองได้ทุกเมื่อ',
-                                'ท่านสามารถเพิกถอนคำยินยอมได้ โดยการแจ้งผ่านระบบภายในแอป ซึ่งอาจมีผลต่อความสามารถในการใช้งานบางส่วนของแอป',
-                                'การไม่ให้ข้อมูลบางประเภทอาจส่งผลต่อการใช้งานบางฟีเจอร์',
-                              ],
-                            ),
+                            _buildSection('4. สิทธิของเจ้าของข้อมูล', '', [
+                              'ท่านมีสิทธิในการขอเข้าถึง แก้ไข หรือลบข้อมูลของตนเองได้ทุกเมื่อ',
+                              'ท่านสามารถเพิกถอนคำยินยอมได้ โดยการแจ้งผ่านระบบภายในแอป ซึ่งอาจมีผลต่อความสามารถในการใช้งานบางส่วนของแอป',
+                              'การไม่ให้ข้อมูลบางประเภทอาจส่งผลต่อการใช้งานบางฟีเจอร์',
+                            ]),
 
                             const SizedBox(height: 20),
 
@@ -560,9 +527,10 @@ void _onAccept() {
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: _hasScrolledToBottom 
-                                    ? const Color(0xFFE5FFEB) 
-                                    : Colors.grey.withOpacity(0.3),
+                                color:
+                                    _hasScrolledToBottom
+                                        ? const Color(0xFFE5FFEB)
+                                        : Colors.grey.withOpacity(0.3),
                                 width: 2,
                               ),
                             ),
@@ -573,7 +541,10 @@ void _onAccept() {
                                   scale: 1.2,
                                   child: Checkbox(
                                     value: _isConsentChecked,
-                                    onChanged: _hasScrolledToBottom ? _onConsentChanged : null,
+                                    onChanged:
+                                        _hasScrolledToBottom
+                                            ? _onConsentChanged
+                                            : null,
                                     activeColor: const Color(0xFF4CAF50),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(4),
@@ -604,7 +575,9 @@ void _onAccept() {
                                 child: OutlinedButton(
                                   onPressed: _onDecline,
                                   style: OutlinedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(vertical: 16),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 16,
+                                    ),
                                     side: const BorderSide(
                                       color: Color(0xFF757575),
                                       width: 2,
@@ -637,16 +610,27 @@ void _onAccept() {
                               const SizedBox(width: 12),
                               Expanded(
                                 child: ElevatedButton(
-                                  onPressed: (_hasScrolledToBottom && _isConsentChecked) 
-                                      ? _onAccept 
-                                      : null,
+                                  onPressed:
+                                      (_hasScrolledToBottom &&
+                                              _isConsentChecked)
+                                          ? _onAccept
+                                          : null,
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: const Color(0xFF046E3E),
-                                    disabledBackgroundColor: Colors.grey.withOpacity(0.3),
+                                    disabledBackgroundColor: Colors.grey
+                                        .withOpacity(0.3),
                                     foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(vertical: 16),
-                                    elevation: (_hasScrolledToBottom && _isConsentChecked) ? 8 : 0,
-                                    shadowColor: const Color(0xFF4CAF50).withOpacity(0.3),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 16,
+                                    ),
+                                    elevation:
+                                        (_hasScrolledToBottom &&
+                                                _isConsentChecked)
+                                            ? 8
+                                            : 0,
+                                    shadowColor: const Color(
+                                      0xFF4CAF50,
+                                    ).withOpacity(0.3),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
@@ -654,10 +638,7 @@ void _onAccept() {
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: const [
-                                      Icon(
-                                        Icons.check,
-                                        size: 18,
-                                      ),
+                                      Icon(Icons.check, size: 18),
                                       SizedBox(width: 8),
                                       Text(
                                         'ยินยอม',
@@ -724,39 +705,40 @@ void _onAccept() {
             ),
           ],
           const SizedBox(height: 12),
-          ...items.map((item) => Container(
-            margin: const EdgeInsets.only(bottom: 8),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  margin: const EdgeInsets.only(top: 6, right: 8),
-                  width: 6,
-                  height: 6,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF4CAF50),
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    item,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      height: 1.6,
-                      color: Color(0xFF424242),
+          ...items.map(
+            (item) => Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(top: 6, right: 8),
+                    width: 6,
+                    height: 6,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF4CAF50),
+                      shape: BoxShape.circle,
                     ),
                   ),
-                ),
-              ],
+                  Expanded(
+                    child: Text(
+                      item,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        height: 1.6,
+                        color: Color(0xFF424242),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          )),
+          ),
         ],
       ),
     );
   }
 }
-
 
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});
@@ -803,63 +785,64 @@ class _LoginFormState extends State<LoginForm> {
   }
 
   Future<void> _login() async {
-  final username = _usernameController.text;
-  final password = _passwordController.text;
+    final username = _usernameController.text;
+    final password = _passwordController.text;
 
-  if (username.isEmpty || password.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Please enter both username and password")),
-    );
-    return;
-  }
-
-  setState(() {
-    _isLoading = true;
-  });
-
-  try {
-    final response = await http.post(
-      Uri.parse('$baseUrl/api/login'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'username': username, 'password': password}),
-    );
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('username', username);
-      await prefs.setString('role', data['role']);
-      await prefs.setString('name', data['name']);
-
-      // ไม่ต้องแสดง login สำเร็จเหมือนเดิม
+    if (username.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Login successful! Welcome ${data['name']}")),
+        const SnackBar(
+          content: Text("Please enter both username and password"),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'username': username, 'password': password}),
       );
 
-      // ไปหน้า UserPage
-      Navigator.pushReplacement(
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('username', username);
+        await prefs.setString('role', data['role']);
+        await prefs.setString('name', data['name']);
+
+        // ไม่ต้องแสดง login สำเร็จเหมือนเดิม
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Login successful! Welcome ${data['name']}")),
+        );
+
+        // ไปหน้า UserPage
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => UserPage()),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Login failed: ${response.body}")),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
         context,
-        MaterialPageRoute(builder: (_) => UserPage()),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Login failed: ${response.body}")),
-      );
-    }
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("An error occurred: $e")),
-    );
-  } finally {
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
+      ).showSnackBar(SnackBar(content: Text("An error occurred: $e")));
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
-}
-
 
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) {
@@ -883,7 +866,9 @@ class _LoginFormState extends State<LoginForm> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('กำลังเปิดหน้าต่าง Thai ID Authentication...\nกรุณาใช้บัตรประชาชนและ PIN ของท่าน'),
+          content: Text(
+            'กำลังเปิดหน้าต่าง Thai ID Authentication...\nกรุณาใช้บัตรประชาชนและ PIN ของท่าน',
+          ),
           backgroundColor: primaryGreen,
         ),
       );
@@ -937,15 +922,16 @@ class _LoginFormState extends State<LoginForm> {
                       // Header
                       _buildHeader(),
                       const SizedBox(height: 40),
-                      
+
                       // Username Field
                       _buildUsernameField(),
                       const SizedBox(height: 24),
-                      
+
                       // Password Field
                       _buildPasswordField(),
-                      const SizedBox(height: 32), // เพิ่มระยะห่างเนื่องจากเอา checkbox ออก
-                      
+                      const SizedBox(
+                        height: 32,
+                      ), // เพิ่มระยะห่างเนื่องจากเอา checkbox ออก
                       // Login Button (เอา Show Password Checkbox ออก)
                       _buildLoginButton(),
                       const SizedBox(height: 20),
@@ -953,11 +939,11 @@ class _LoginFormState extends State<LoginForm> {
                       // Divider
                       _buildDivider(),
                       const SizedBox(height: 20),
-                      
+
                       // Thai ID Button
                       _buildThaiIdButton(),
                       const SizedBox(height: 30),
-                      
+
                       // Footer
                       _buildFooter(),
                     ],
@@ -985,10 +971,7 @@ class _LoginFormState extends State<LoginForm> {
         const SizedBox(height: 12),
         Text(
           'เข้าสู่ระบบเพื่อเข้าใช้งาน',
-          style: TextStyle(
-            fontSize: 16,
-            color: Colors.grey[600],
-          ),
+          style: TextStyle(fontSize: 16, color: Colors.grey[600]),
           textAlign: TextAlign.center,
         ),
       ],
@@ -1035,8 +1018,14 @@ class _LoginFormState extends State<LoginForm> {
               borderRadius: BorderRadius.circular(8),
               borderSide: const BorderSide(color: Colors.red, width: 2),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            prefixIcon: const Icon(Icons.person_outline, color: Color(0xFF64748B)),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 16,
+            ),
+            prefixIcon: const Icon(
+              Icons.person_outline,
+              color: Color(0xFF64748B),
+            ),
           ),
           onChanged: (value) {
             // Auto format to uppercase and remove spaces
@@ -1096,26 +1085,33 @@ class _LoginFormState extends State<LoginForm> {
               borderRadius: BorderRadius.circular(8),
               borderSide: const BorderSide(color: Colors.red, width: 2),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 16,
+            ),
             prefixIcon: const Icon(Icons.key_sharp, color: Color(0xFF64748B)),
             // แสดง suffixIcon เฉพาะตอนที่ focus อยู่
-            suffixIcon: _isPasswordFocused ? IconButton(
-              icon: Icon(
-                _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
-                color: const Color(0xFF64748B),
-              ),
-              onPressed: () {
-                setState(() {
-                  _isPasswordVisible = !_isPasswordVisible;
-                });
-              },
-            ) : null,
+            suffixIcon:
+                _isPasswordFocused
+                    ? IconButton(
+                      icon: Icon(
+                        _isPasswordVisible
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                        color: const Color(0xFF64748B),
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isPasswordVisible = !_isPasswordVisible;
+                        });
+                      },
+                    )
+                    : null,
           ),
         ),
       ],
     );
   }
-
 
   Widget _buildLoginButton() {
     return SizedBox(
@@ -1127,28 +1123,36 @@ class _LoginFormState extends State<LoginForm> {
           backgroundColor: primaryGreen,
           foregroundColor: Colors.white,
           disabledBackgroundColor: Colors.grey[400],
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           elevation: 0,
         ),
-        child: _isLoading
-            ? Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+        child:
+            _isLoading
+                ? Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Text('กำลังตรวจสอบ...', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                ],
-              )
-            : const Text('เข้าสู่ระบบ', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                    const SizedBox(width: 12),
+                    const Text(
+                      'กำลังตรวจสอบ...',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                )
+                : const Text(
+                  'เข้าสู่ระบบ',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
       ),
     );
   }
@@ -1161,10 +1165,7 @@ class _LoginFormState extends State<LoginForm> {
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Text(
             'หรือ',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[600],
-            ),
+            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
           ),
         ),
         Expanded(child: Divider(color: Colors.grey[300])),
@@ -1182,39 +1183,50 @@ class _LoginFormState extends State<LoginForm> {
           foregroundColor: primaryGreen,
           side: const BorderSide(color: primaryGreen, width: 2),
           backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
-        child: _isThaiIdLoading
-            ? Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(primaryGreen),
+        child:
+            _isThaiIdLoading
+                ? Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(primaryGreen),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Text('กำลังเชื่อมต่อ Thai ID...', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                ],
-              )
-              
-            : Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Image.asset(
-                    'assets/login_page/unnamed.png',
-                    width: 24,
-                    height: 24,
-                  ),
-                  const SizedBox(width: 12),
-                  const Text('เข้าสู่ระบบ ด้วย Thai ID', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                ],
-              ),
+                    const SizedBox(width: 12),
+                    const Text(
+                      'กำลังเชื่อมต่อ Thai ID...',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                )
+                : Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(
+                      'assets/login_page/unnamed.png',
+                      width: 24,
+                      height: 24,
+                      
+                    ),
+                    const SizedBox(width: 12),
+                    const Text(
+                      'เข้าสู่ระบบ ด้วย Thai ID',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
       ),
     );
   }
@@ -1224,20 +1236,14 @@ class _LoginFormState extends State<LoginForm> {
       children: [
         Text(
           '© 2025 ระบบสารสนเทศราชการ. สงวนลิขสิทธิ์',
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[600],
-          ),
+          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 8),
         RichText(
           textAlign: TextAlign.center,
           text: TextSpan(
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[600],
-            ),
+            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
             children: [
               const TextSpan(text: 'หากมีปัญหาการใช้งาน ติดต่อ: '),
               TextSpan(
@@ -1304,4 +1310,3 @@ Widget getWidgetByRole(String role) {
       return PatientPage();
   }
 }
-  

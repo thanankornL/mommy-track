@@ -882,7 +882,7 @@ class _ViewDetailsState extends State<ViewDetails> {
               debugPrint(result.toString());
               if (result != null) {
                 showModalBottomSheet(
-                  context: context,
+                  context : context,
                   clipBehavior: Clip.antiAlias,
                   isScrollControlled: true,
                   shape: RoundedRectangleBorder(
