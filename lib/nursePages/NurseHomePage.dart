@@ -559,9 +559,7 @@ class _NurseHomePage extends State<NurseHomePage> {
   String getStatusFromAction(int? action) {
     if (action == null) return 'ไม่ระบุ';
 
-    if (action >= 0 && action <= 3) {
-      return 'ปกติ';
-    } else if (action >= 4 && action <= 7) {
+    if (action >= 0 && action <= 7) {
       return 'ต้องติดตาม';
     } else if (action == 9) {
       return 'คลอดแล้ว';
@@ -574,9 +572,7 @@ class _NurseHomePage extends State<NurseHomePage> {
   Color getStatusColor(int? action) {
     if (action == null) return Colors.grey;
 
-    if (action >= 0 && action <= 3) {
-      return Colors.green;
-    } else if (action >= 4 && action <= 7) {
+     if (action >= 0 && action <= 7) {
       return Colors.orange;
     } else if (action == 9) {
       return Colors.blue;
@@ -810,7 +806,6 @@ class _NurseHomePage extends State<NurseHomePage> {
               ),
               OutlinedButton.icon(
                 onPressed: () {
-                  // เพิ่มฟังก์ชันดูรายละเอียดทั้งหมด
                   showDialog(
                     context: context,
                     builder:
@@ -819,13 +814,6 @@ class _NurseHomePage extends State<NurseHomePage> {
                           content: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              _buildStatCard(
-                                'ปกติ',
-                                patientsList
-                                    .where((p) => p['statusText'] == 'ปกติ')
-                                    .length,
-                                Colors.green,
-                              ),
                               _buildStatCard(
                                 'ต้องติดตาม',
                                 patientsList

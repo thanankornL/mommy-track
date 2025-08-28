@@ -8,7 +8,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:carebellmom/config.dart';
 import 'dart:math';
-
+import 'countchild.dart';
 class PatientHomePage extends StatefulWidget {
   const PatientHomePage({super.key});
 
@@ -183,7 +183,7 @@ class _PatientHomePage extends State<PatientHomePage> {
     int weeks = totalDays ~/ 7;
     int days = totalDays % 7;
     String actionDisplay = action ?? '';
-    String usernameDisplay = username ?? '';
+    String usernameDisplay = displayName ?? '';
 
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
@@ -218,7 +218,7 @@ class _PatientHomePage extends State<PatientHomePage> {
                       ),
                       SizedBox(height: screenHeight * 0.01),
                       Text(
-                        'คุณ : $usernameDisplay',
+                        'คุณ : $usernameDisplay', 
                         style: TextStyle(fontSize: 16, color: Colors.black54),
                       ),
                     ],
@@ -272,7 +272,7 @@ class _PatientHomePage extends State<PatientHomePage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'การแจ้งเตือนครั้งที่ : $actionDisplay',
+                        _actions(int.tryParse(actionDisplay) ?? 0),
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -392,7 +392,12 @@ class _PatientHomePage extends State<PatientHomePage> {
                 ),
               ),
             ),
-
+   ElevatedButton.icon(onPressed: (){ Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => Countchild(),
+                      ),
+                    );}, label: Text("นับจำนวนลูกติ้นรายวัน"),),
             // Statistics Section
             Container(
               margin: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
@@ -768,4 +773,26 @@ class NavigationProvider extends ChangeNotifier {
     _currentIndex = index;
     notifyListeners();
   }
+}
+String _actions (int $actionDisplay)  {
+  if ($actionDisplay == 0) {
+    return "การแจ้งเตือนครั้งที่ : 1";
+  } else if ($actionDisplay == 1) {
+    return "การแจ้งเตือนครั้งที่ : 2";
+  } else if ($actionDisplay ==  2) {
+    return "การแจ้งเตือนครั้งที่ : 3";
+  } else if ($actionDisplay == 3) {
+    return "การแจ้งเตือนครั้งที่ : 4";
+  } else if ($actionDisplay == 4) {
+    return "การแจ้งเตือนครั้งที่ : 5";
+  } else if ($actionDisplay == 5) {
+    return "การแจ้งเตือนครั้งที่ : 6";
+  } else if ($actionDisplay == 6) {
+    return "การแจ้งเตือนครั้งที่ : 7";
+  } else if ($actionDisplay == 7) {
+    return "การแจ้งเตือนครั้งที่ : 8";
+  } else if ($actionDisplay == 8) {
+    return "คลอดแล้ว";
+  }
+  return "ไม่พบข้อมูล";
 }

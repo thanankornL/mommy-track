@@ -188,7 +188,7 @@ class _AddUserState extends State<AddUser> {
           children: [
             TextField(
               decoration: InputDecoration(
-                labelText: "User National ID",
+                labelText: "กรอกหมายเลขบัตรประชาชน",
                 border: OutlineInputBorder(),
               ),
               controller: _userNationalIDController,
@@ -197,7 +197,7 @@ class _AddUserState extends State<AddUser> {
             SizedBox(height: 16),
             TextField(
               decoration: InputDecoration(
-                labelText: "User Password",
+                labelText: "กรอกรหัสผ่าน",
                 border: OutlineInputBorder(),
               ),
               controller: _userPasswordController,
@@ -206,7 +206,7 @@ class _AddUserState extends State<AddUser> {
             SizedBox(height: 16),
             TextField(
               decoration: InputDecoration(
-                labelText: "User Name",
+                labelText: "กรออกชื่อแะนามสกุล",
                 border: OutlineInputBorder(),
               ),
               controller: _userNameController,
@@ -214,7 +214,7 @@ class _AddUserState extends State<AddUser> {
             SizedBox(height: 16),
             TextField(
               decoration: InputDecoration(
-                labelText: "Telephone Number",
+                labelText: "หมายเลขโทรศัพท์",
                 border: OutlineInputBorder(),
               ),
               controller: _telephoneNumberController,

@@ -10,13 +10,11 @@ import 'package:giffy_dialog/giffy_dialog.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 
-
-// --------- User Model ----------
 class User {
   final String id;
   final String username;
   final String displayname;
-  final String? telephone; // Optional field
+  final String? telephone;
   User({
     required this.id,
     required this.username,
@@ -59,12 +57,9 @@ class _editUserPageState extends State<editUserPage> {
 
   @override
   Widget build(BuildContext context) {
-    appBar :AppBar(
-      title: Text("Edit User"),
-      backgroundColor: Colors.green,
-    );
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
     return KeyboardListener(
-    
       focusNode: FocusNode()..requestFocus(),
       autofocus: true,
       onKeyEvent: (event) {
@@ -74,9 +69,13 @@ class _editUserPageState extends State<editUserPage> {
         }
       },
       child: Scaffold(
+        appBar: AppBar(
+          title: Text("แก้ไขข้อมูลผู้ใช้งาน"),
+          backgroundColor: Colors.green,
+        ),
         body: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Column(         
+          child: Column(
             children: [
               SizedBox(height: 35),
               Row(
@@ -188,6 +187,7 @@ class _editUserPageState extends State<editUserPage> {
               ),
               Spacer(),
               _buildSlideAction(),
+              SizedBox(height: screenHeight * 0.05),
             ],
           ),
         ),

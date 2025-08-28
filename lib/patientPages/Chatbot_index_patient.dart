@@ -122,7 +122,7 @@ class _Chatbot_index_patientState extends State<Chatbot_index_patient> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'AI Assistant',
+                  'Mommy AI',
                   style: TextStyle(
                     color: const Color(0xFF2D3748),
                     fontSize: screenHeight * 0.022,

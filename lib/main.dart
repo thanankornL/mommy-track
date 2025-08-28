@@ -983,7 +983,7 @@ class _LoginFormState extends State<LoginForm> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'ชื่อบัญชีผู้ใช้',
+          'กรอกหมายเลขบัตรประชาชน',
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
@@ -995,7 +995,7 @@ class _LoginFormState extends State<LoginForm> {
           controller: _usernameController,
           textInputAction: TextInputAction.next,
           decoration: InputDecoration(
-            hintText: 'ชื่อบัญชีผู้ใช้',
+            hintText: 'กรอกหมายเลขบัตรประชาชน',
             filled: true,
             fillColor: const Color(0xFFF8FAFC),
             border: OutlineInputBorder(
@@ -1047,7 +1047,7 @@ class _LoginFormState extends State<LoginForm> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'รหัสผ่าน',
+          'กรอกรหัสผ่าน',
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
