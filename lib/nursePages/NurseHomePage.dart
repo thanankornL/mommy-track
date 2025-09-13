@@ -1,19 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:flutter_image_slideshow/flutter_image_slideshow.dart';
-import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
 import 'package:carebellmom/patient_management/patients_management.dart';
 import '../nursePages/AddNurse.dart';
 import '../notification.dart';
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:intl/intl.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../config.dart';
-
+import 'package:carebellmom/config.dart';
 import 'package:carebellmom/chatting/chat_list_screen.dart';
+import "package:carebellmom/nursePages/manage_patien.dart";
 
 class NurseHomePage extends StatefulWidget {
   const NurseHomePage({super.key});
@@ -48,7 +45,7 @@ class _NurseHomePage extends State<NurseHomePage> {
     super.initState();
     _updateTime(); // เรียกตอนเริ่ม
     _timer = Timer.periodic(Duration(seconds: 1), (Timer t) => _updateTime());
-    loadUserData(); // โหลดข้อมูลผู้ใช้
+    loadUserData(); 
     loadPatientsData();
   }
 
@@ -120,11 +117,13 @@ class _NurseHomePage extends State<NurseHomePage> {
       return Scaffold(
         backgroundColor: backgroundColor,
         body: Center(
-          child: CircularProgressIndicator(color: const Color(0xFF2E8B57), strokeWidth: 3),
+          child: CircularProgressIndicator(
+            color: const Color(0xFF2E8B57),
+            strokeWidth: 3,
+          ),
         ),
       );
     }
-
     return Scaffold(
       backgroundColor: backgroundColor,
       appBar: AppBar(
@@ -230,7 +229,7 @@ class _NurseHomePage extends State<NurseHomePage> {
           ],
         ),
         toolbarHeight: 180,
-        backgroundColor: Colors.green[700],
+        backgroundColor: Colors.green,
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -304,7 +303,8 @@ class _NurseHomePage extends State<NurseHomePage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => SendNotificationAndAppointment(),
+                            builder:
+                                (context) => SendNotificationAndAppointment(),
                           ),
                         );
                       },
@@ -342,24 +342,22 @@ class _NurseHomePage extends State<NurseHomePage> {
                         );
                       },
                     ),
+
                     SizedBox(width: 20),
                     _buildMenuButton(
                       context: context,
-                      icon: Icons.settings,
-                      label: 'ตั้งค่า',
-                      color: Colors.grey[600]!,
+                      icon: Icons.search,
+                      label: 'ค้นหาคนไข้',
+                      color: const Color.fromARGB(255, 229, 183, 30)!,
                       onPressed: () {
-                        // จะเพิ่มฟังก์ชันตั้งค่าในอนาคต
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'ฟีเจอร์ตั้งค่าจะเปิดใช้งานเร็วๆ นี้',
-                            ),
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SearchPage(),
                           ),
                         );
                       },
                     ),
-                    SizedBox(width: 20),
                   ],
                 ),
               ),
@@ -385,10 +383,9 @@ class _NurseHomePage extends State<NurseHomePage> {
               ),
             ),
             SizedBox(height: screenHeight * 0.02),
-            
+
             buildPatientsTable(),
             SizedBox(height: screenHeight * 0.02),
-
           ],
         ),
       ),
@@ -467,10 +464,6 @@ class _NurseHomePage extends State<NurseHomePage> {
       ],
     );
   }
-
-
-
-
 
   // เพิ่มตัวแปรสำหรับเก็บข้อมูลผู้ป่วย
   List<Map<String, dynamic>> patientsList = [];
@@ -572,7 +565,7 @@ class _NurseHomePage extends State<NurseHomePage> {
   Color getStatusColor(int? action) {
     if (action == null) return Colors.grey;
 
-     if (action >= 0 && action <= 7) {
+    if (action >= 0 && action <= 7) {
       return Colors.orange;
     } else if (action == 9) {
       return Colors.blue;
@@ -1055,5 +1048,3 @@ class _NurseHomePage extends State<NurseHomePage> {
 
   // ในส่วน build method แทนที่ตารางเดิมด้วย
 }
-
-

@@ -2670,41 +2670,467 @@ app.get("/kicks/statistics", async (req, res) => {
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 });
+
+// เพิ่ม API นี้ใน server.js
+
+// Get checklist data for a patient
+// เพิ่มใน server.js
+// ข้อมูล template สำหรับแต่ละครั้ง
+const visitTemplates = {
+  1: {
+    title: "การแจ้งเตือนที่ 1",
+    description: "อายุครรภ์น้อยกว่า 12 สัปดาห์",
+    tasks: [
+      { id: 1, task: "ตรวจ UPT Positive, ส่งตรวจ UA และ Amphetamine ในรายที่มีความเสี่ยง", completed: false },
+      { id: 2, task: "ฝากครรภ์พร้อมออกสมุดบันทึกมซักประวัติเสี่ยงต่างๆ", completed: false },
+      { id: 3, task: "ประเมินการให้วัคซีน dT1", completed: false },
+      { id: 4, task: "ส่งตรวจ U/S ครั้งที่ 1", completed: false },
+      { id: 5, task: "Lab 1", completed: false },
+      { id: 6, task: "ตรวจสุขภาพช่องปาก", completed: false },
+      { id: 7, task: "ประเมินสุขภาพจิต 1", completed: false },
+      { id: 8, task: "โรงเรียนพ่อแม่ครั้งที่ 1", completed: false },
+      { id: 9, task: "ให้ยา Triferdine, Calcium ตลอดการตั้งครรภ์", completed: false }
+    ]
+  },
+  2: {
+    title: "การแจ้งเตือนที่ 2",
+    description: "อายุครรภ์น้อยกว่า 20 สัปดาห์ แต่มากกว่า 12 สัปดาห์",
+    tasks: [
+      { id: 1, task: "ตรวจ UPT Positive,ส่งตรวจ UA และ Amphetamine ในรายที่มีความเสี่ยง", completed: false },
+      { id: 2, task: "ฝากครรภ์พร้อมออกสมุดบันทึกมซักประวัติเสี่ยงต่างๆ", completed: false },
+      { id: 3, task: "ประเมินการให้วัคซีน dT1", completed: false },
+      { id: 4, task: "ส่งตรวจ U/S ครั้งที่ 1", completed: false },
+      { id: 5, task: "Lab 1", completed: false },
+      { id: 6, task: "ตรวจสุขภาพช่องปาก", completed: false },
+      { id: 7, task: "ประเมินสุขภาพจิต 1", completed: false },
+      { id: 8, task: "โรงเรียนพ่อแม่ครั้งที่ 1", completed: false },
+      { id: 9, task: "ให้ยา Triferdine, Calcium ตลอดการตั้งครรภ์", completed: false }
+    ]
+  },
+  3: {
+    title: "การแจ้งเตือนที่ 3",
+    description: "อายุครรภ์เท่ากับ 26 สัปดาห์ แต่มากกว่า 20 สัปดาห์",
+    tasks: [
+      { id: 1, task: "ตรวจ UA", completed: false },
+      { id: 2, task: "ประเมินความเสี่ยงการตั้งครรภ์", completed: false },
+      { id: 3, task: "ส่งตรวจ U/S ครั้งที่ 2", completed: false },
+      { id: 4, task: "ประเมินสุขภาพจิต ครั้งที่ 2", completed: false },
+      { id: 5, task: "บันทึกการตรวจครรภ์", completed: false },
+      { id: 6, task: "ให้สุขศึกษา", completed: false }
+    ]
+  },
+  4: {
+    title: "การแจ้งเตือนที่ 4",
+    description: "อายุครรภ์เท่ากับ 32 สัปดาห์ แต่มากกว่า 26 สัปดาห์",
+    tasks: [
+      { id: 1, task: "ตรวจ UA", completed: false },
+      { id: 2, task: "ประเมินความเสี่ยงการตั้งครรภ์", completed: false },
+      { id: 3, task: "ประเมินสุขภาพจิต ครั้งที่ 4", completed: false },
+      { id: 4, task: "Lab 2 (Anti HIV, VDRI, Hct, Hb)", completed: false },
+      { id: 5, task: "บันทึกการตรวจครรภ์", completed: false },
+      { id: 6, task: "โรงเรียนพ่อแม่ครั้งที่ 2", completed: false },
+      { id: 7, task: "ให้สุขศึกษา เน้น อันตรายคลอดก่อนกำหนดและสัญญาณเตือน", completed: false }
+    ]
+  },
+  5: {
+    title: "การแจ้งเตือนที่ 5",
+    description: "อายุครรภ์เท่ากับ 34 สัปดาห์ แต่มากกว่า 32 สัปดาห์",
+    tasks: [
+      { id: 1, task: "ตรวจ Multiple urine dipstip", completed: false },
+      { id: 2, task: "ประเมินความเสี่ยงการตั้งครรภ์", completed: false },
+      { id: 3, task: "ประเมินสุขภาพจิต ครั้งที่ 5", completed: false },
+      { id: 4, task: "ส่งตรวจ U/S ครั้งที่ 3 ดูการเจริญเติบโต, ส่วนนำ", completed: false },
+      { id: 5, task: "ประเมินการคลอด", completed: false },
+      { id: 6, task: "ให้สุขศึกษาเน้นอันตรายคลอดก่อนกำหนดและสัญญาณเตือน", completed: false }
+    ]
+  },
+  6: {
+    title: "การแจ้งเตือนที่ 6",
+    description: "อายุครรภ์เท่ากับ 36 สัปดาห์ แต่มากกว่า 34 สัปดาห์",
+    tasks: [
+      { id: 1, task: "ตรวจ Multiple urine dipstip", completed: false },
+      { id: 2, task: "ประเมินความเสี่ยงการตั้งครรภ์", completed: false },
+      { id: 3, task: "ประเมินสุขภาพจิต ครั้งที่ 6", completed: false },
+      { id: 4, task: "บันทึกการตรวจครรภ์", completed: false },
+      { id: 5, task: "ให้สุขศึกษา", completed: false }
+    ]
+  },
+  7: {
+    title: "การแจ้งเตือนที่ 7",
+    description: "อายุครรภ์เท่ากับ 38 สัปดาห์ แต่มากกว่า 36 สัปดาห์",
+    tasks: [
+      { id: 1, task: "ตรวจ Multiple urine dipstip", completed: false },
+      { id: 2, task: "ประเมินความเสี่ยงการตั้งครรภ์", completed: false },
+      { id: 3, task: "ประเมินสุขภาพจิต ครั้งที่ 6", completed: false },
+      { id: 4, task: "บันทึกการตรวจครรภ์", completed: false },
+      { id: 5, task: "ให้สุขศึกษา", completed: false },
+      { id: 6, task: "NST +PV", completed: false },
+      { id: 7, task: "ประเมินการให้ dT3 ห่างจากเข็ม 2 นาน 6 เดือน", completed: false }
+    ]
+  },
+  8: {
+    title: "การแจ้งเตือนที่ 8",
+    description: "อายุครรภ์เท่ากับ 40 สัปดาห์ แต่มากกว่า 38 สัปดาห์",
+    tasks: [
+      { id: 1, task: "ตรวจ Multiple urine dipstip", completed: false },
+      { id: 2, task: "ประเมินความเสี่ยงการตั้งครรภ์", completed: false },
+      { id: 3, task: "ประเมินสุขภาพจิต ครั้งที่ 6", completed: false },
+      { id: 4, task: "บันทึกการตรวจครรภ์", completed: false },
+      { id: 5, task: "ให้สุขศึกษา", completed: false },
+      { id: 6, task: "ส่ง NST +PV ที่ LR NST non -reactive, PV: not dilation refer รพ.นครพนม", completed: false },
+      { id: 7, task: "U/S ดูน้ำครำ", completed: false }
+    ]
+  }
+};
+
+// ฟังก์ชันสำหรับ migrate ข้อมูลเก่า
+function migrateOldChecklistData(oldChecklist) {
+  const migratedVisits = [];
+  
+  for (let i = 1; i <= 8; i++) {
+    const template = visitTemplates[i];
+    const existingVisit = oldChecklist.visits?.find(v => v.visit === i);
+    
+    let migratedVisit = {
+      visit: i,
+      title: template.title,
+      description: template.description,
+      tasks: [...template.tasks], // เริ่มต้นด้วย template tasks
+      completed: false,
+      completedTasks: 0,
+      totalTasks: template.tasks.length,
+      date: null
+    };
+    
+    // ถ้ามีข้อมูลเก่า ให้นำมารวม
+    if (existingVisit) {
+      migratedVisit.completed = existingVisit.completed || false;
+      migratedVisit.date = existingVisit.date || null;
+      
+      // ถ้ามี tasks เก่า ให้ merge กับ template
+      if (existingVisit.tasks && Array.isArray(existingVisit.tasks)) {
+        migratedVisit.tasks = template.tasks.map(templateTask => {
+          const existingTask = existingVisit.tasks.find(t => t.id === templateTask.id);
+          return existingTask ? { ...templateTask, completed: existingTask.completed } : templateTask;
+        });
+      }
+      
+      // คำนวณ completedTasks ใหม่
+      migratedVisit.completedTasks = migratedVisit.tasks.filter(t => t.completed).length;
+      
+      // อัพเดทสถานะ completed ถ้าจำเป็น
+      if (migratedVisit.completedTasks === migratedVisit.totalTasks && migratedVisit.completedTasks > 0) {
+        migratedVisit.completed = true;
+        if (!migratedVisit.date) {
+          migratedVisit.date = new Date();
+        }
+      }
+    }
+    
+    migratedVisits.push(migratedVisit);
+  }
+  
+  return migratedVisits;
+}
+
+// API สำหรับ get checklist พร้อม data migration
+app.post("/api/get_patient_checklist", async (req, res) => {
+  const { username } = req.body;
+  
+  if (!username) {
+    return res.status(400).json({ success: false, message: "Username is required" });
+  }
+  
+  try {
+    const patient = await db.collection("patients_data").findOne({ username });
+    if (!patient) {
+      return res.status(404).json({ success: false, message: "Patient not found" });
+    }
+
+    let checklist = await db.collection("patient_checklist").findOne({ username });
+    let needsUpdate = false;
+    
+    if (!checklist) {
+      // สร้าง checklist ใหม่พร้อม detailed tasks
+      const visits = [];
+      for (let i = 1; i <= 8; i++) {
+        const template = visitTemplates[i];
+        visits.push({
+          visit: i,
+          title: template.title,
+          description: template.description,
+          tasks: [...template.tasks], // copy tasks from template
+          completed: false,
+          completedTasks: 0,
+          totalTasks: template.tasks.length,
+          date: null
+        });
+      }
+
+      checklist = {
+        username,
+        display_name: patient.display_name,
+        GA: patient.GA,
+        visits,
+        lastUpdated: new Date()
+      };
+      
+      await db.collection("patient_checklist").insertOne(checklist);
+      console.log(`Created new checklist for ${username}`);
+    } else {
+      // ตรวจสอบว่าจำเป็นต้อง migrate หรือไม่
+      const firstVisit = checklist.visits?.[0];
+      const needsMigration = !firstVisit || 
+                            !firstVisit.title || 
+                            !firstVisit.description || 
+                            !firstVisit.tasks || 
+                            !Array.isArray(firstVisit.tasks) ||
+                            firstVisit.tasks.length === 0;
+      
+      if (needsMigration) {
+        console.log(`Migrating checklist data for ${username}`);
+        
+        // Migrate ข้อมูล
+        const migratedVisits = migrateOldChecklistData(checklist);
+        
+        checklist.visits = migratedVisits;
+        checklist.lastUpdated = new Date();
+        needsUpdate = true;
+        
+        console.log(`Migration completed for ${username}`);
+      }
+      
+      // อัพเดท display_name และ GA ถ้าจำเป็น
+      if (checklist.display_name !== patient.display_name || checklist.GA !== patient.GA) {
+        checklist.display_name = patient.display_name;
+        checklist.GA = patient.GA;
+        needsUpdate = true;
+      }
+      
+      // บันทึกการเปลี่ยนแปลง
+      if (needsUpdate) {
+        await db.collection("patient_checklist").updateOne(
+          { username },
+          { $set: checklist }
+        );
+        console.log(`Updated checklist for ${username}`);
+      }
+    }
+
+    res.json({ success: true, checklist });
+  } catch (err) {
+    console.error("Error fetching/creating checklist:", err);
+    res.status(500).json({ success: false, message: "Internal server error", error: err.message });
+  }
+});
+
+// API สำหรับ migrate ข้อมูลทั้งหมด (สำหรับ admin)
+app.post("/api/migrate_all_checklists", async (req, res) => {
+  try {
+    const checklists = await db.collection("patient_checklist").find({}).toArray();
+    let migratedCount = 0;
+    
+    for (const checklist of checklists) {
+      const firstVisit = checklist.visits?.[0];
+      const needsMigration = !firstVisit || 
+                            !firstVisit.title || 
+                            !firstVisit.description || 
+                            !firstVisit.tasks || 
+                            !Array.isArray(firstVisit.tasks) ||
+                            firstVisit.tasks.length === 0;
+      
+      if (needsMigration) {
+        console.log(`Migrating checklist for ${checklist.username}`);
+        
+        const migratedVisits = migrateOldChecklistData(checklist);
+        
+        await db.collection("patient_checklist").updateOne(
+          { username: checklist.username },
+          { 
+            $set: { 
+              visits: migratedVisits,
+              lastUpdated: new Date()
+            }
+          }
+        );
+        
+        migratedCount++;
+      }
+    }
+    
+    res.json({ 
+      success: true, 
+      message: `Migrated ${migratedCount} checklists successfully`,
+      totalChecked: checklists.length,
+      migrated: migratedCount
+    });
+  } catch (err) {
+    console.error("Error migrating checklists:", err);
+    res.status(500).json({ success: false, message: "Internal server error", error: err.message });
+  }
+});
+
+// API สำหรับอัพเดท task แต่ละรายการ
+app.post("/api/update_task_item", async (req, res) => {
+  const { username, visitNumber, taskId, completed } = req.body;
+  
+  if (!username || !visitNumber || !taskId || completed === undefined) {
+    return res.status(400).json({ success: false, message: "Missing required parameters" });
+  }
+  
+  try {
+    // อัพเดท task ที่เฉพาะเจาะจง
+    const result = await db.collection("patient_checklist").updateOne(
+      { 
+        username, 
+        "visits.visit": visitNumber,
+        "visits.tasks.id": taskId 
+      },
+      { 
+        $set: { 
+          "visits.$[visit].tasks.$[task].completed": completed,
+          lastUpdated: new Date()
+        }
+      },
+      {
+        arrayFilters: [
+          { "visit.visit": visitNumber },
+          { "task.id": taskId }
+        ]
+      }
+    );
+
+    if (result.modifiedCount > 0) {
+      // คำนวณจำนวน task ที่เสร็จแล้ว และอัพเดทสถานะของ visit
+      const checklist = await db.collection("patient_checklist").findOne({ username });
+      const visit = checklist.visits.find(v => v.visit === visitNumber);
+      
+      if (visit) {
+        const completedTasks = visit.tasks.filter(t => t.completed).length;
+        const allTasksCompleted = completedTasks === visit.totalTasks;
+
+        await db.collection("patient_checklist").updateOne(
+          { username, "visits.visit": visitNumber },
+          { 
+            $set: { 
+              "visits.$.completedTasks": completedTasks,
+              "visits.$.completed": allTasksCompleted,
+              "visits.$.date": allTasksCompleted ? new Date() : (completedTasks > 0 ? visit.date || new Date() : null),
+              lastUpdated: new Date()
+            }
+          }
+        );
+      }
+
+      res.json({ success: true, message: "Task updated successfully" });
+    } else {
+      res.status(404).json({ success: false, message: "Task not found or no changes made" });
+    }
+  } catch (err) {
+    console.error("Error updating task:", err);
+    res.status(500).json({ success: false, message: "Internal server error", error: err.message });
+  }
+});
+
+// Update checklist item (legacy support)
+app.post("/api/update_checklist_item", async (req, res) => {
+  const { username, visitNumber, completed } = req.body;
+  
+  if (!username || !visitNumber || completed === undefined) {
+    return res.status(400).json({ success: false, message: "Missing required parameters" });
+  }
+  
+  try {
+    const result = await db.collection("patient_checklist").updateOne(
+      { username, "visits.visit": visitNumber },
+      { 
+        $set: { 
+          "visits.$.completed": completed,
+          "visits.$.date": completed ? new Date() : null,
+          lastUpdated: new Date()
+        }
+      }
+    );
+
+    if (result.modifiedCount === 0) {
+      return res.status(404).json({ success: false, message: "Checklist item not found" });
+    }
+
+    res.json({ success: true, message: "Checklist updated successfully" });
+  } catch (err) {
+    console.error("Error updating checklist:", err);
+    res.status(500).json({ success: false, message: "Internal server error", error: err.message });
+  }
+});
+
+// Get current visit status for patient dashboard
+app.post("/api/get_patient_visit_status", async (req, res) => {
+  const { username } = req.body;
+  
+  if (!username) {
+    return res.status(400).json({ success: false, message: "Username is required" });
+  }
+  
+  try {
+    const checklist = await db.collection("patient_checklist").findOne({ username });
+    
+    if (!checklist) {
+      return res.json({ 
+        success: true, 
+        currentVisit: 1,
+        completedVisits: 0,
+        nextVisitDue: true 
+      });
+    }
+
+    const completedVisits = checklist.visits.filter(v => v.completed).length;
+    const currentVisit = completedVisits + 1;
+    const nextVisitDue = currentVisit <= 8;
+
+    res.json({ 
+      success: true, 
+      currentVisit: currentVisit > 8 ? 8 : currentVisit,
+      completedVisits,
+      nextVisitDue,
+      visits: checklist.visits
+    });
+  } catch (err) {
+    console.error("Error fetching visit status:", err);
+    res.status(500).json({ success: false, message: "Internal server error", error: err.message });
+  }
+});
+
+
+app.post("/api/mark_visit_checkin", async (req, res) => {
+  const { username, visitNumber, checkIn } = req.body;
+  
+  if (!username || !visitNumber || checkIn === undefined) {
+    return res.status(400).json({ success: false, message: "Missing required parameters" });
+  }
+
+  try {
+    const updateData = {
+      "visits.$.checkedIn": checkIn,
+      "visits.$.checkInDate": checkIn ? new Date() : null,
+      lastUpdated: new Date()
+    };
+
+    const result = await db.collection("patient_checklist").updateOne(
+      { username, "visits.visit": visitNumber },
+      { $set: updateData }
+    );
+
+    if (result.modifiedCount > 0) {
+      res.json({ success: true, message: "Check-in status updated successfully" });
+    } else {
+      res.status(404).json({ success: false, message: "Visit not found" });
+    }
+  } catch (err) {
+    console.error("Error updating check-in status:", err);
+    res.status(500).json({ success: false, message: "Internal server error", error: err.message });
+  }
+});
 // Start the server
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
-  console.log(`Chat API endpoints:`);
-  console.log(`- POST /api/register`);
-  console.log(`- POST /api/login`);
-  console.log(`- POST /api/send_otp`);
-  console.log(`- POST /api/verify_otp`);
-  console.log(`- POST /api/update_profile`);
-  console.log(`- POST /api/get_profile`);
-  console.log(`- POST /api/get_chat_history`);
-  console.log(`- POST /api/get_chat_contacts`);
-  console.log(`- POST /api/mark_messages_read`);
-  console.log(`- GET  /api/get_all_patients`);
-  console.log(`- GET  /api/get_all_nurses`);
-  console.log(`- GET  /api/test_chat`);
-  console.log(`- GET  /api/user/patients_data`);
-  console.log(`- POST /api/save_appointment`);
-  console.log(`- POST /api/calculate_appointment_dates`);
-  console.log(`- POST /api/confirm_appointment`);
-  console.log(`- POST /api/request_appointment_change`);
-  console.log(`- POST /api/approve_appointment_change`);
-  console.log(`- GET  /api/notifications`);
-  console.log(`- POST /api/mark_notification_read`);
-  console.log(`- GET  /api/get_appointments`);
-  console.log(`- GET  /api/get_all_appointments`);
-  console.log(`- GET  /api/get_today_appointments`);
-  console.log(`- GET  /api/get_upcoming_appointments`);
-  console.log(`- GET  /api/appointment_statistics`);
-  console.log(`- POST /api/bulk_update_appointments`);
-  console.log(`- DELETE /api/delete_appointment`);
-  console.log(`- POST /api/search_appointments`);
-  console.log(`- GET  /api/get_change_requests`);
-  console.log(`- POST /api/reject_appointment_change`);
-  console.log(`- GET  /api/change_requests_statistics`);
-  console.log(`- GET  /api/get_patient_change_history`);
-  console.log(`- POST /api/bulk_handle_change_requests`);
 });
